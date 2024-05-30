@@ -14,7 +14,7 @@ interface PostRepositoryInterface
      * @return PostInterface
      * @throws CouldNotSaveException
      */
-    public function save(PostInterface $post);
+    public function save(PostInterface $post): PostInterface;
 
     /**
      * @param $value
@@ -22,21 +22,14 @@ interface PostRepositoryInterface
      * @return PostInterface
      * @throws NoSuchEntityException
      */
-    public function get($value, string $field = PostInterface::ENTITY_ID);
-
-//    /**
-//     * @param \Magento\Framework\Api\SearchCriteriaInterface $searchCriteria
-//     * @return \Magento\Cms\Api\Data\PageSearchResultsInterface
-//     * @throws \Magento\Framework\Exception\LocalizedException
-//     */
-//    public function getList(\Magento\Framework\Api\SearchCriteriaInterface $searchCriteria);
+    public function get($value, string $field = PostInterface::ENTITY_ID): PostInterface;
 
     /**
      * @param PostInterface $post
      * @return bool true on success
      * @throws CouldNotDeleteException
      */
-    public function delete(PostInterface $post);
+    public function delete(PostInterface $post): bool;
 
     /**
      * @param int $postId
@@ -44,5 +37,5 @@ interface PostRepositoryInterface
      * @throws NoSuchEntityException
      * @throws CouldNotDeleteException
      */
-    public function deleteById(int $postId);
+    public function deleteById(int $postId): bool;
 }
