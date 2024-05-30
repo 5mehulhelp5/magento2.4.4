@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace VConnect\Blog\Api\Data;
 
-use Magento\Tests\NamingConvention\true\string;
-
 interface PostInterface
 {
     public const MAIN_TABLE = 'blog_post_entity';

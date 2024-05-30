@@ -11,7 +11,6 @@ class Collection extends AbstractCollection
 {
     protected $_idFieldName = PostInterface::ENTITY_ID;
 
-
     protected function _construct()
     {
         $this->_init(PostModel::class, PostResource::class);

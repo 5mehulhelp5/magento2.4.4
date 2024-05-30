@@ -255,6 +255,8 @@ return [
         'Magento_WishlistGraphQl' => 1,
         'PayPal_Braintree' => 1,
         'PayPal_BraintreeGraphQl' => 1,
-        'Temando_ShippingRemover' => 1
+        'Temando_ShippingRemover' => 1,
+        'Training_Sales' => 0,
+        'VConnect_Blog' => 1
     ]
 ];
