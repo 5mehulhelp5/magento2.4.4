@@ -1,0 +1,17 @@
+{
+    "blog_post_entity": {
+        "column": {
+            "entity_id": true,
+            "title": true,
+            "content": true,
+            "announce": true,
+            "publish_date": true,
+            "publish": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    }
+}
