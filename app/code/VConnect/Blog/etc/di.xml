@@ -9,4 +9,5 @@
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <preference for="VConnect\Blog\Api\Data\PostInterface" type="VConnect\Blog\Model\Post" />
     <preference for="VConnect\Blog\Api\PostRepositoryInterface" type="VConnect\Blog\Model\PostRepository" />
+    <preference for="VConnect\Blog\Api\Data\PostSearchResultsInterface" type="VConnect\Blog\Model\PostSearchResults" />
 </config>

@@ -6,26 +6,25 @@ use VConnect\Blog\Api\Data\PostInterface;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\CouldNotDeleteException;
+use VConnect\Blog\Api\Data\PostSearchResultsInterface;
 
 interface PostRepositoryInterface
 {
     /**
-     * @param PostInterface $post
-     * @return PostInterface
+     * @param \VConnect\Blog\Api\Data\PostInterface $post
+     * @return \VConnect\Blog\Api\Data\PostInterface
      * @throws CouldNotSaveException
      */
     public function save(PostInterface $post): PostInterface;
 
     /**
-     * @param $value
-     * @param string $field
-     * @return PostInterface
-     * @throws NoSuchEntityException
+     * @param int $postId
+     * @return \VConnect\Blog\Api\Data\PostInterface
      */
-    public function get($value, string $field = PostInterface::ENTITY_ID): PostInterface;
+    public function get(int $postId): PostInterface;
 
     /**
-     * @param PostInterface $post
+     * @param \VConnect\Blog\Api\Data\PostInterface $post
      * @return bool true on success
      * @throws CouldNotDeleteException
      */
@@ -38,4 +37,10 @@ interface PostRepositoryInterface
      * @throws CouldNotDeleteException
      */
     public function deleteById(int $postId): bool;
+
+    /**
+     * @param \Magento\Framework\Api\SearchCriteriaInterface $searchCriteria
+     * @return \VConnect\Blog\Api\Data\PostSearchResultsInterface
+     */
+    public function getList(\Magento\Framework\Api\SearchCriteriaInterface $searchCriteria): PostSearchResultsInterface;
 }

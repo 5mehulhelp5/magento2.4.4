@@ -2,28 +2,40 @@
 
 namespace VConnect\Blog\Model;
 
+use Magento\Framework\Api\SearchCriteria\CollectionProcessorInterface;
 use VConnect\Blog\Api\Data\PostInterface;
+use VConnect\Blog\Api\Data\PostSearchResultsInterface;
+use VConnect\Blog\Api\Data\PostSearchResultsInterfaceFactory;
 use VConnect\Blog\Api\PostRepositoryInterface;
 use VConnect\Blog\Api\Data\PostInterfaceFactory;
 use VConnect\Blog\Model\ResourceModel\Post as PostResource;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\CouldNotDeleteException;
+use VConnect\Blog\Model\ResourceModel\Post\CollectionFactory as PostCollectionFactory;
+
 
 class PostRepository implements PostRepositoryInterface
 {
     private PostResource $postResource;
     private PostInterfaceFactory $postFactory;
+    private PostCollectionFactory $postCollectionFactory;
 
-    public function __construct(PostResource $postResource, PostInterfaceFactory $postFactory)
-    {
+    public function __construct(
+        PostResource $postResource,
+        PostInterfaceFactory $postFactory,
+        PostCollectionFactory $postCollectionFactory,
+        private PostSearchResultsInterfaceFactory $postSearchResultsFactory,
+        private CollectionProcessorInterface $collectionProcessor
+    ) {
         $this->postResource = $postResource;
         $this->postFactory = $postFactory;
+        $this->postCollectionFactory = $postCollectionFactory;
     }
 
     /**
-     * @param PostInterface $post
-     * @return PostInterface
+     * @param \VConnect\Blog\Api\Data\PostInterface $post
+     * @return \VConnect\Blog\Api\Data\PostInterface
      * @throws CouldNotSaveException
      */
     public function save(PostInterface $post): PostInterface
@@ -38,24 +50,23 @@ class PostRepository implements PostRepositoryInterface
     }
 
     /**
-     * @param $value
-     * @param string $field
-     * @return PostInterface
+     * @param int $postId
+     * @return \VConnect\Blog\Api\Data\PostInterface
      * @throws NoSuchEntityException
      */
-    public function get($value, string $field = PostInterface::ENTITY_ID): PostInterface
+    public function get(int $postId): PostInterface
     {
         $post = $this->postFactory->create();
-        $this->postResource->load($post, $value, $field);
+        $this->postResource->load($post, $postId, 'entity_id');
         if (!$post->getId()) {
-            throw new NoSuchEntityException(__("Post entity with the \"%1\" $field doesn\'t exist.", $value));
+            throw new NoSuchEntityException(__("Post entity with the \"entity_id\" doesn\'t exist.", $postId));
         }
 
         return $post;
     }
 
     /**
-     * @param PostInterface $post
+     * @param \VConnect\Blog\Api\Data\PostInterface $post
      * @return bool
      * @throws CouldNotDeleteException
      */
@@ -79,5 +90,23 @@ class PostRepository implements PostRepositoryInterface
     public function deleteById(int $postId): bool
     {
         return $this->delete($this->get($postId));
+    }
+
+    /**
+     * @param \Magento\Framework\Api\SearchCriteriaInterface $searchCriteria
+     * @return \VConnect\Blog\Api\Data\PostSearchResultsInterface
+     */
+    public function getList(\Magento\Framework\Api\SearchCriteriaInterface $searchCriteria): PostSearchResultsInterface
+    {
+        $collection = $this->postCollectionFactory->create();
+
+        /** @var PostSearchResultsInterface $searchResult */
+        $searchResult = $this->postSearchResultsFactory->create();
+        $searchResult->setSearchCriteria($searchCriteria);
+        $this->collectionProcessor->process($searchCriteria, $collection);
+        $searchResult->setItems($collection->getItems());
+        $searchResult->setTotalCount($collection->getSize());
+
+        return $searchResult;
     }
 }

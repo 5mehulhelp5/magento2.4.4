@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace VConnect\Blog\Model;
 
@@ -68,18 +69,18 @@ class Post extends AbstractModel implements PostInterface
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getPublishDate(): string
+    public function getPublishDate(): ?string
     {
         return $this->getData(self::PUBLISH_DATE);
     }
 
     /**
-     * @param string $publishDate
+     * @param string|null $publishDate
      * @return PostInterface
      */
-    public function setPublishDate(string $publishDate): PostInterface
+    public function setPublishDate(?string $publishDate = null): PostInterface
     {
         return $this->setData(self::PUBLISH_DATE, $publishDate);
     }
@@ -89,48 +90,48 @@ class Post extends AbstractModel implements PostInterface
      */
     public function getPublish(): bool
     {
-        return $this->getData(self::PUBLISH);
+        return (bool)$this->getData(self::PUBLISH);
     }
 
     /**
      * @param bool $publish
      * @return PostInterface
      */
-    public function setPublish(bool $publish): PostInterface
+    public function setPublish(?bool $publish = null): PostInterface
     {
         return $this->setData(self::PUBLISH, $publish);
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getCreatedAt(): string
+    public function getCreatedAt(): ?string
     {
         return $this->getData(self::CREATED_AT);
     }
 
     /**
-     * @param string $createdAt
+     * @param string|null $createdAt
      * @return PostInterface
      */
-    public function setCreatedAt(string $createdAt): PostInterface
+    public function setCreatedAt(?string $createdAt = null): PostInterface
     {
         return $this->setData(self::CREATED_AT, $createdAt);
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getUpdatedAt(): string
+    public function getUpdatedAt(): ?string
     {
         return $this->getData(self::UPDATED_AT);
     }
 
     /**
-     * @param string $updatedAt
+     * @param string|null $updatedAt
      * @return PostInterface
      */
-    public function setUpdatedAt(string $updatedAt): PostInterface
+    public function setUpdatedAt(?string $updatedAt = null): PostInterface
     {
         return $this->setData(self::UPDATED_AT, $updatedAt);
     }

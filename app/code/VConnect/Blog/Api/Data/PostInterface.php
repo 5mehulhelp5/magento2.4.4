@@ -16,6 +16,17 @@ interface PostInterface
     public const UPDATED_AT = 'updated_at';
 
     /**
+     * @return mixed
+     */
+    public function getEntityId();
+
+    /**
+     * @param int $entityId
+     * @return $this
+     */
+    public function setEntityId($entityId);
+
+    /**
      * @return string
      */
     public function getTitle(): string;
@@ -49,15 +60,15 @@ interface PostInterface
     public function setAnnounce(string $announce): self;
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getPublishDate(): string;
+    public function getPublishDate(): ?string;
 
     /**
-     * @param string $publishDate
+     * @param string|null $publishDate
      * @return $this
      */
-    public function setPublishDate(string $publishDate): self;
+    public function setPublishDate(?string $publishDate = null): self;
 
     /**
      * @return bool
@@ -68,27 +79,27 @@ interface PostInterface
      * @param bool $publish
      * @return $this
      */
-    public function setPublish(bool $publish): self;
+    public function setPublish(?bool $publish = null): self;
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getCreatedAt(): string;
+    public function getCreatedAt(): ?string;
 
     /**
-     * @param string $createdAt
+     * @param string|null $createdAt
      * @return $this
      */
-    public function setCreatedAt(string $createdAt): self;
+    public function setCreatedAt(?string $createdAt = null): self;
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getUpdatedAt(): string;
+    public function getUpdatedAt(): ?string;
 
     /**
-     * @param string $updatedAt
+     * @param string|null $updatedAt
      * @return $this
      */
-    public function setUpdatedAt(string $updatedAt): self;
+    public function setUpdatedAt(?string $updatedAt = null): self;
 }
