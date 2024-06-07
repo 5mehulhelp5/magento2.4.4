@@ -5,16 +5,23 @@ namespace VConnect\Blog\Model;
 
 use Magento\Framework\Model\AbstractModel;
 use VConnect\Blog\Api\Data\PostInterface;
+use VConnect\Blog\Model\ResourceModel\Post as PostResourceModel;
 
 class Post extends AbstractModel implements PostInterface
 {
+    /**#@+
+     * Post's publish statuses
+     */
+    public const PUBLISHED = 1;
+    public const NOT_PUBLISHED = 0;
+
     /**
      * Initialize resource model
      * @return void
      */
     protected function _construct()
     {
-        $this->_init(\VConnect\Blog\Model\ResourceModel\Post::class);
+        $this->_init(PostResourceModel::class);
     }
 
     /**
