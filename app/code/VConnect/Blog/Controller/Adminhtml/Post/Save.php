@@ -8,57 +8,34 @@ use Magento\Backend\App\Action\Context;
 use VConnect\Blog\Api\PostRepositoryInterface;
 use VConnect\Blog\Model\Post;
 use VConnect\Blog\Model\PostFactory;
-use Magento\Framework\App\Request\DataPersistorInterface;
 use Magento\Framework\Exception\LocalizedException;
-//use Magento\Framework\Registry;
 use VConnect\Blog\Controller\Adminhtml\Post as AbstractPostController;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Controller\ResultInterface;
 
 /**
- * Save CMS block action.
+ * Save Blog Post action.
  */
 class Save extends AbstractPostController implements HttpPostActionInterface
 {
     /**
-     * @var DataPersistorInterface
-     */
-    protected $dataPersistor;
-
-    /**
-     * @var PostFactory
-     */
-    private $postFactory;
-
-    /**
-     * @var PostRepositoryInterface
-     */
-    private $postRepository;
-
-    /**
      * @param Context $context
-//     * @param Registry $coreRegistry
-     * @param DataPersistorInterface $dataPersistor
      * @param PostFactory|null $postFactory
      * @param PostRepositoryInterface|null $postRepository
      */
     public function __construct(
         Context $context,
-//        Registry $coreRegistry,
-//        DataPersistorInterface $dataPersistor,
-        PostFactory $postFactory = null,
-        PostRepositoryInterface $postRepository = null
+        private ?PostFactory $postFactory = null,
+        private ?PostRepositoryInterface $postRepository = null
     ) {
-//        $this->dataPersistor = $dataPersistor;
         $this->postFactory = $postFactory ?: ObjectManager::getInstance()->get(PostFactory::class);
         $this->postRepository = $postRepository ?: ObjectManager::getInstance()->get(PostRepositoryInterface::class);
-        parent::__construct($context/*, $coreRegistry*/);
+        parent::__construct($context);
     }
 
     /**
      * Save action
      *
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @return \Magento\Framework\Controller\ResultInterface
      */
     public function execute(): ResultInterface
@@ -93,48 +70,15 @@ class Save extends AbstractPostController implements HttpPostActionInterface
             try {
                 $this->postRepository->save($model);
                 $this->messageManager->addSuccessMessage(__('You saved the post.'));
-//                $this->dataPersistor->clear('cms_block');
-//                return $this->processBlockReturn($model, $data, $resultRedirect);
             } catch (LocalizedException $e) {
                 $this->messageManager->addErrorMessage($e->getMessage());
             } catch (\Exception $e) {
                 $this->messageManager->addExceptionMessage($e, __('Something went wrong while saving the post.'));
             }
 
-//            $this->dataPersistor->set('cms_block', $data);
             return $resultRedirect->setPath('*/*/edit', ['entity_id' => $id]);
         }
 
         return $resultRedirect->setPath('*/*/');
     }
-
-//    /**
-//     * Process and set the post return
-//     *
-//     * @param \VConnect\Blog\Model\Post $model
-//     * @param array $data
-//     * @param \Magento\Framework\Controller\ResultInterface $resultRedirect
-//     * @return \Magento\Framework\Controller\ResultInterface
-//     */
-//    private function processBlockReturn(Post $model, array $data, ResultInterface $resultRedirect): ResultInterface
-//    {
-//        $redirect = $data['back'] ?? 'close';
-//
-//        if ($redirect ==='continue') {
-//            $resultRedirect->setPath('*/*/edit', ['block_id' => $model->getId()]);
-//        } elseif ($redirect === 'close') {
-//            $resultRedirect->setPath('*/*/');
-//        } elseif ($redirect === 'duplicate') {
-//            $duplicateModel = $this->postFactory->create(['data' => $data]);
-//            $duplicateModel->setId(null);
-//            $duplicateModel->setIdentifier($data['identifier'] . '-' . uniqid());
-//            $duplicateModel->setIsActive(Post::NOT_PUBLISHED);
-//            $this->blockRepository->save($duplicateModel);
-//            $id = $duplicateModel->getId();
-//            $this->messageManager->addSuccessMessage(__('You duplicated the block.'));
-//            $this->dataPersistor->set('cms_block', $data);
-//            $resultRedirect->setPath('*/*/edit', ['block_id' => $id]);
-//        }
-//        return $resultRedirect;
-//    }
 }

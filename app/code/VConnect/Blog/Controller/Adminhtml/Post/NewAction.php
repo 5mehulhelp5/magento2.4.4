@@ -15,19 +15,13 @@ use Magento\Backend\App\Action\Context;
 class NewAction extends Post implements HttpGetActionInterface
 {
     /**
-     * @var \Magento\Backend\Model\View\Result\ForwardFactory
-     */
-    protected $resultForwardFactory;
-
-    /**
      * @param \Magento\Backend\App\Action\Context $context
      * @param \Magento\Backend\Model\View\Result\ForwardFactory $resultForwardFactory
      */
     public function __construct(
         Context $context,
-        ForwardFactory $resultForwardFactory
+        protected ForwardFactory $resultForwardFactory
     ) {
-        $this->resultForwardFactory = $resultForwardFactory;
         parent::__construct($context);
     }
 

@@ -14,7 +14,6 @@ class Index extends Action implements HttpGetActionInterface
 
     /**
      * Add the main Admin Grid page
-     *
      * @return Page
      */
     public function execute(): Page

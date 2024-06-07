@@ -16,30 +16,19 @@ use VConnect\Blog\Api\Data\PostInterfaceFactory;
 class Edit extends Post implements HttpGetActionInterface
 {
     /**
-     * @var \Magento\Framework\View\Result\PageFactory
-     */
-    protected $resultPageFactory;
-
-    /**
-     * Factory to create Post Model Object
-     * * @var \VConnect\Blog\Api\Data\PostInterfaceFactory
-     */
-    private PostInterfaceFactory $postInterfaceFactory;
-
-
-    /**
      * Edit constructor.
+     *
      * @param Context $context
      * @param PageFactory $resultPageFactory
+     *
+     * Factory to create Post Model Object
      * @param PostInterfaceFactory $postInterfaceFactory
      */
     public function __construct(
         Context $context,
-        PageFactory $resultPageFactory,
-        PostInterfaceFactory $postInterfaceFactory
+        protected PageFactory $resultPageFactory,
+        private PostInterfaceFactory $postInterfaceFactory
     ) {
-        $this->resultPageFactory = $resultPageFactory;
-        $this->postInterfaceFactory = $postInterfaceFactory;
         parent::__construct($context);
     }
 

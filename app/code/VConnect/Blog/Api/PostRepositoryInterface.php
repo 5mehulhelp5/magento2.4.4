@@ -7,6 +7,7 @@ use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\CouldNotDeleteException;
 use VConnect\Blog\Api\Data\PostSearchResultsInterface;
+use Magento\Framework\Api\SearchCriteriaInterface;
 
 interface PostRepositoryInterface
 {
@@ -42,5 +43,5 @@ interface PostRepositoryInterface
      * @param \Magento\Framework\Api\SearchCriteriaInterface $searchCriteria
      * @return \VConnect\Blog\Api\Data\PostSearchResultsInterface
      */
-    public function getList(\Magento\Framework\Api\SearchCriteriaInterface $searchCriteria): PostSearchResultsInterface;
+    public function getList(SearchCriteriaInterface $searchCriteria): PostSearchResultsInterface;
 }

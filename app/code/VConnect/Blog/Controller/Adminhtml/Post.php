@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace VConnect\Blog\Controller\Adminhtml;
 
 use Magento\Backend\App\Action;
-use Magento\Backend\App\Action\Context;
 use Magento\Backend\Model\View\Result\Page;
 
 abstract class Post extends Action
@@ -15,14 +14,6 @@ abstract class Post extends Action
      * @see _isAllowed()
      */
     public const ADMIN_RESOURCE = 'VConnect_Blog::post';
-
-    /**
-     * @param \Magento\Backend\App\Action\Context $context
-     */
-    public function __construct(Context $context)
-    {
-        parent::__construct($context);
-    }
 
     /**
      * Init page
