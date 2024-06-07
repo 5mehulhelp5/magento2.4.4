@@ -13,24 +13,18 @@ use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\CouldNotDeleteException;
 use VConnect\Blog\Model\ResourceModel\Post\CollectionFactory as PostCollectionFactory;
-
+use Magento\Framework\Api\SearchCriteriaInterface;
 
 class PostRepository implements PostRepositoryInterface
 {
-    private PostResource $postResource;
-    private PostInterfaceFactory $postFactory;
-    private PostCollectionFactory $postCollectionFactory;
-
     public function __construct(
-        PostResource $postResource,
-        PostInterfaceFactory $postFactory,
-        PostCollectionFactory $postCollectionFactory,
+        private PostResource $postResource,
+        private PostInterfaceFactory $postFactory,
+        private PostCollectionFactory $postCollectionFactory,
         private PostSearchResultsInterfaceFactory $postSearchResultsFactory,
         private CollectionProcessorInterface $collectionProcessor
     ) {
-        $this->postResource = $postResource;
-        $this->postFactory = $postFactory;
-        $this->postCollectionFactory = $postCollectionFactory;
+
     }
 
     /**
@@ -96,7 +90,7 @@ class PostRepository implements PostRepositoryInterface
      * @param \Magento\Framework\Api\SearchCriteriaInterface $searchCriteria
      * @return \VConnect\Blog\Api\Data\PostSearchResultsInterface
      */
-    public function getList(\Magento\Framework\Api\SearchCriteriaInterface $searchCriteria): PostSearchResultsInterface
+    public function getList(SearchCriteriaInterface $searchCriteria): PostSearchResultsInterface
     {
         $collection = $this->postCollectionFactory->create();
 
