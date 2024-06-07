@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">blog_post_form.blog_post_form_data_source</item>
+        </item>
+        <item name="template" xsi:type="string">templates/form/collapsible</item>
+    </argument>
+    <settings>
+        <buttons>
+            <button name="save" class="VConnect\Blog\Block\Adminhtml\Post\Edit\SaveButton"/>
+            <button name="back" class="VConnect\Blog\Block\Adminhtml\Post\Edit\BackButton"/>
+        </buttons>
+        <namespace>blog_post_form</namespace>
+        <dataScope>data</dataScope>
+        <deps>
+            <dep>blog_post_form.blog_post_form_data_source</dep>
+        </deps>
+    </settings>
+    <dataSource name="blog_post_form_data_source">
+        <argument name="data" xsi:type="array">
+            <item name="js_config" xsi:type="array">
+                <item name="component" xsi:type="string">Magento_Ui/js/form/provider</item>
+            </item>
+        </argument>
+        <settings>
+            <submitUrl path="vconnect_blog/post/save"/>
+        </settings>
+        <dataProvider class="VConnect\Blog\Model\Post\DataProvider" name="blog_post_form_data_source">
+            <settings>
+                <requestFieldName>entity_id</requestFieldName>
+                <primaryFieldName>entity_id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <fieldset name="general">
+        <settings>
+            <label/>
+        </settings>
+        <field name="entity_id" formElement="input">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">post</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>text</dataType>
+                <visible>false</visible>
+                <dataScope>entity_id</dataScope>
+            </settings>
+        </field>
+        <field name="publish" sortOrder="10" formElement="checkbox">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">post</item>
+                    <item name="default" xsi:type="number">0</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>boolean</dataType>
+                <label translate="true">Published</label>
+                <dataScope>publish</dataScope>
+            </settings>
+            <formElements>
+                <checkbox>
+                    <settings>
+                        <valueMap>
+                            <map name="false" xsi:type="number">0</map>
+                            <map name="true" xsi:type="number">1</map>
+                        </valueMap>
+                        <prefer>toggle</prefer>
+                    </settings>
+                </checkbox>
+            </formElements>
+        </field>
+        <field name="title" sortOrder="20" formElement="input">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">post</item>
+                </item>
+            </argument>
+            <settings>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+                <dataType>text</dataType>
+                <label translate="true">Post Title</label>
+                <dataScope>title</dataScope>
+            </settings>
+        </field>
+        <field name="announce" sortOrder="30" formElement="input">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">post</item>
+                </item>
+            </argument>
+            <settings>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+                <dataType>text</dataType>
+                <label translate="true">Post Announce(brief description)</label>
+                <dataScope>announce</dataScope>
+            </settings>
+        </field>
+        <field name="publish_date" sortOrder="50" formElement="date">
+            <settings>
+                <additionalClasses>
+                    <class name="admin__field-date">true</class>
+                </additionalClasses>
+                <dataType>string</dataType>
+                <label translate="true">Publish Date</label>
+                <dataScope>publish_date</dataScope>
+            </settings>
+        </field>
+    </fieldset>
+    <fieldset name="content" sortOrder="10">
+        <settings>
+            <collapsible>true</collapsible>
+            <label translate="true">Content</label>
+        </settings>
+        <field name="content" template="ui/form/field" formElement="wysiwyg">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="wysiwygConfigData" xsi:type="array">
+                        <item name="height" xsi:type="string">100px</item>
+                        <item name="add_variables" xsi:type="boolean">false</item>
+                        <item name="add_widgets" xsi:type="boolean">false</item>
+                        <item name="add_images" xsi:type="boolean">true</item>
+                        <item name="add_directives" xsi:type="boolean">true</item>
+                    </item>
+                    <item name="source" xsi:type="string">post</item>
+                </item>
+            </argument>
+            <settings>
+                <additionalClasses>
+                    <class name="admin__field-wide">true</class>
+                </additionalClasses>
+                <dataScope>content</dataScope>
+            </settings>
+            <formElements>
+                <wysiwyg class="Magento\Catalog\Ui\Component\Category\Form\Element\Wysiwyg">
+                    <settings>
+                        <rows>8</rows>
+                        <wysiwyg>true</wysiwyg>
+                    </settings>
+                </wysiwyg>
+            </formElements>
+        </field>
+    </fieldset>
+</form>

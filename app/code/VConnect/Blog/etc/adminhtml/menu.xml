@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add
+            id="VConnect_Blog::content_elements"
+            title="VConnect Blog"
+            translate="title"
+            module="VConnect_Blog"
+            sortOrder="10"
+            parent="Magento_Backend::content"
+            resource="VConnect_Blog::post"/>
+        <add
+            id="VConnect_Blog::post"
+            title="Posts"
+            translate="title"
+            module="VConnect_Blog"
+            sortOrder="0"
+            parent="VConnect_Blog::content_elements"
+            action="vconnect_blog/post"
+            resource="VConnect_Blog::post"/>
+    </menu>
+</config>
