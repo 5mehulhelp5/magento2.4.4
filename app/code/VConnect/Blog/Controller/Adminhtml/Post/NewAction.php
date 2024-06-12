@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace VConnect\Blog\Controller\Adminhtml\Post;
 
 use Magento\Framework\App\Action\HttpGetActionInterface;
-use VConnect\Blog\Controller\Adminhtml\Post;
+use VConnect\Blog\Controller\Adminhtml\Post as AbstractPostController;
 use Magento\Backend\Model\View\Result\ForwardFactory;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Backend\App\Action\Context;
@@ -12,7 +12,7 @@ use Magento\Backend\App\Action\Context;
 /**
  * Create Blog Post action.
  */
-class NewAction extends Post implements HttpGetActionInterface
+class NewAction extends AbstractPostController implements HttpGetActionInterface
 {
     /**
      * @param \Magento\Backend\App\Action\Context $context

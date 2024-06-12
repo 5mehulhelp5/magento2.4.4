@@ -1,0 +1,16 @@
+<?php
+use VConnect\Blog\Block\PostView;
+use VConnect\Blog\Model\Post;
+
+/**
+ * @var PostView $block
+ * @var Post $post
+ */
+
+$post = $block->getPost();
+?>
+<h1><?= $post->getTitle() ?></h1>
+<p>
+    <span class="publish_date"><?= $post->getPublishDate(); ?></span>
+</p>
+<p><?= $post->getContent(); ?></p>

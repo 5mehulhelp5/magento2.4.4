@@ -16,7 +16,7 @@
             <argument name="mainTable" xsi:type="string">blog_post_entity</argument>
             <argument name="eventPrefix" xsi:type="string">blog_post_grid_collection</argument>
             <argument name="eventObject" xsi:type="string">post_grid_collection</argument>
-            <argument name="resourceModel" xsi:type="string">\VConnect\Blog\Model\ResourceModel\Post</argument>
+            <argument name="resourceModel" xsi:type="string">VConnect\Blog\Model\ResourceModel\Post</argument>
         </arguments>
     </type>
 </config>

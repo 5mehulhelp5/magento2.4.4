@@ -1,0 +1,25 @@
+<?php
+use VConnect\Blog\Block\PostsList;
+
+/**
+ * @var $block PostsList
+ * @var $posts \VConnect\Blog\Model\Post[]
+ * @var $post \VConnect\Blog\Model\Post
+ */
+
+$posts = $block->getPosts();
+?>
+
+<?php if (count($posts) === 0): ?>
+    <p>There are no posts in this blog.</p>
+<?php else: ?>
+    <?php foreach ($posts as $post): ?>
+        <a href="<?= $block->getPostUrl($post); ?>">
+            <h3><?= $post->getTitle(); ?></h3>
+        </a>
+        <p>
+            <span class="publish_date"><?= $post->getPublishDate(); ?></span>
+        </p>
+        <p><?= $post->getAnnounce(); ?></p>
+    <?php endforeach; ?>
+<?php endif; ?>
