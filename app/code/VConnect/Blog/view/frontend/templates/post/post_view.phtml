@@ -10,10 +10,10 @@ use VConnect\Blog\Model\Post;
 $post = $block->getPost();
 ?>
 
-<div class="vconnect-blog-post">
     <h1><?= $post->getTitle() ?></h1>
-    <p>
-        <span class="publish_date"><?= $post->getPublishDate(); ?></span>
-    </p>
-    <p><?= $post->getContent(); ?></p>
-</div>
+    <div class="vconnect-blog-post-publish-date">
+        <?= $post->getPublishDate(); ?>
+    </div>
+    <div class="vconnect-blog-post-content">
+        <?= $post->getContent(); ?>
+    </div>

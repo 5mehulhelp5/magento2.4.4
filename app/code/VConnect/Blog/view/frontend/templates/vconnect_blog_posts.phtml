@@ -14,14 +14,14 @@ $posts = $block->getPosts();
     <p>There are no posts in this blog.</p>
 <?php else: ?>
         <?php foreach ($posts as $post): ?>
-            <div class="vconnect-blog-post-in-list">
                 <a href="<?= $block->getPostUrl($post); ?>">
                     <h3><?= $post->getTitle(); ?></h3>
                 </a>
-                <p>
-                    <span class="publish_date"><?= $post->getPublishDate(); ?></span>
-                </p>
-                <p><?= $post->getAnnounce(); ?></p>
-            </div>
+                <div class="vconnect-blog-post-list-publish-date">
+                    <?= $post->getPublishDate(); ?>
+                </div>
+                <div class="vconnect-blog-post-list-announce">
+                    <?= $post->getAnnounce(); ?>
+                </div>
         <?php endforeach; ?>
 <?php endif; ?>
