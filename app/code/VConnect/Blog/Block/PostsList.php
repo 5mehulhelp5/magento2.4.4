@@ -20,12 +20,12 @@ class PostsList extends Template implements IdentityInterface
      * PostsList constructor.
      * @param \VConnect\Blog\Service\PostsProvider $postsProvider
      * @param \Magento\Framework\View\Element\Template\Context $context
-     * @param \Magento\Framework\UrlInterface $url
+     * @param \Magento\Framework\UrlInterface $urlBuilder
      * @param array $data
      */
     public function __construct(
         private PostsProvider $postsProvider,
-        private UrlInterface $url,
+        private UrlInterface $urlBuilder,
         Context $context,
         array $data = []
     ) {
@@ -48,7 +48,10 @@ class PostsList extends Template implements IdentityInterface
      */
     public function getPostUrl(Post $post): string
     {
-        return $this->url->getBaseUrl() . 'vconnect_blog/post/view/id/' . $post->getData('entity_id');
+        return $this->urlBuilder->getUrl(
+            'vconnect_blog/post/view',
+            ['id' => $post->getData('entity_id'), '_secure' => true]
+        );
     }
 
     /**

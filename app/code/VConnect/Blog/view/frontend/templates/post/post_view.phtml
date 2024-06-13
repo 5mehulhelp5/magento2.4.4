@@ -9,8 +9,11 @@ use VConnect\Blog\Model\Post;
 
 $post = $block->getPost();
 ?>
-<h1><?= $post->getTitle() ?></h1>
-<p>
-    <span class="publish_date"><?= $post->getPublishDate(); ?></span>
-</p>
-<p><?= $post->getContent(); ?></p>
+
+<div class="vconnect-blog-post">
+    <h1><?= $post->getTitle() ?></h1>
+    <p>
+        <span class="publish_date"><?= $post->getPublishDate(); ?></span>
+    </p>
+    <p><?= $post->getContent(); ?></p>
+</div>

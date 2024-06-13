@@ -13,9 +13,11 @@ $postsCollection = $block->getPosts();
         <h2 class='title'><?= $block->getData('title'); ?></h2>
     <?php endif; ?>
     <?php foreach ($postsCollection as $post): ?>
-        <h3><a href="<?= $block->getPostUrl($post)?>"><?= $post->getData('title')?></a></h3>
-        <?= $post->getData('publish_date'); ?><br>
-        <?= $post->getData('announce'); ?>
-        <p><a href="<?= $block->getPostUrl($post)?>">Read more...</a></p>
+        <div class="vconnect-blog-post-in-list-widget">
+            <h3><a href="<?= $block->getPostUrl($post)?>"><?= $post->getData('title')?></a></h3>
+            <?= $post->getData('publish_date'); ?><br>
+            <?= $post->getData('announce'); ?>
+            <p><a href="<?= $block->getPostUrl($post)?>">Read more...</a></p>
+        </div>
     <?php endforeach;?>
 <?php endif; ?>

@@ -23,13 +23,13 @@ class PostsList extends Template implements BlockInterface, IdentityInterface
      * PostsList constructor.
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \VConnect\Blog\Model\ResourceModel\Post\CollectionFactory $collectionFactory
-     * @param \Magento\Framework\UrlInterface $url
+     * @param \Magento\Framework\UrlInterface $urlBuilder
      * @param array $data
      */
     public function __construct(
         Context $context,
         private CollectionFactory $collectionFactory,
-        private UrlInterface $url,
+        private UrlInterface $urlBuilder,
         array $data = []
     ) {
         parent::__construct($context, $data);
@@ -45,7 +45,10 @@ class PostsList extends Template implements BlockInterface, IdentityInterface
 
     public function getPostUrl(Post $post): string
     {
-        return $this->url->getBaseUrl() . 'vconnect_blog/post/view/id/' . $post->getData('entity_id');
+        return $this->urlBuilder->getUrl(
+            'vconnect_blog/post/view',
+            ['id' => $post->getData('entity_id'), '_secure' => true]
+        );
     }
 
     /**
@@ -57,8 +60,7 @@ class PostsList extends Template implements BlockInterface, IdentityInterface
         $collection = $this->collectionFactory->create();
         $collection->addFieldToFilter('publish', '1');
         $collection->setOrder('publish_date', Select::SQL_DESC);
-        $postsLimit = $this->getPostsPageSize();
-        $collection->setPageSize($postsLimit);
+        $collection->setPageSize($this->getPostsPageSize());
 
         return $collection;
     }
@@ -85,7 +87,7 @@ class PostsList extends Template implements BlockInterface, IdentityInterface
         return $this->getPostsPerPage();
     }
 
-    public function getIdentities()
+    public function getIdentities(): array
     {
         $identities = [];
         if ($this->getPostsCollection()) {
