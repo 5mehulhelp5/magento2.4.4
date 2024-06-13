@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace VConnect\Blog\Block\Widget;
 
+use Magento\Framework\DataObject\IdentityInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Element\Template;
 use Magento\Widget\Block\BlockInterface;
@@ -12,7 +13,7 @@ use VConnect\Blog\Model\ResourceModel\Post\CollectionFactory;
 use VConnect\Blog\Model\ResourceModel\Post\Collection;
 use Magento\Framework\DB\Select;
 
-class PostsList extends Template implements BlockInterface
+class PostsList extends Template implements BlockInterface, IdentityInterface
 {
     private const DEFAULT_POSTS_PER_PAGE = 3;
 
@@ -82,5 +83,21 @@ class PostsList extends Template implements BlockInterface
     private function getPostsPageSize(): int
     {
         return $this->getPostsPerPage();
+    }
+
+    public function getIdentities()
+    {
+        $identities = [];
+        if ($this->getPostsCollection()) {
+            foreach ($this->getPostsCollection() as $post) {
+                if ($post instanceof IdentityInterface) {
+                    $identities[] = $post->getIdentities();
+                }
+            }
+        }
+
+        $identities = array_merge([], ...$identities);
+
+        return $identities;
     }
 }
