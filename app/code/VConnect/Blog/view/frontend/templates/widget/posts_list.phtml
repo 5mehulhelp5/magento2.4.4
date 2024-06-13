@@ -1,0 +1,23 @@
+<?php
+/**
+ * @var $block \VConnect\Blog\Block\Widget\PostsList
+ * @var $postsCollection \VConnect\Blog\Model\ResourceModel\Post\Collection
+ * @var $post \VConnect\Blog\Model\Post
+ */
+
+$postsCollection = $block->getPosts();
+?>
+
+<?php if(!empty($postsCollection)) : ?>
+    <?php if(!empty($block->getData('title'))) :  ?>
+        <h2 class='title'><?= $block->getData('title'); ?></h2>
+    <?php endif; ?>
+    <?php foreach ($postsCollection as $post): ?>
+            <h3><a href="<?= $block->getPostUrl($post)?>"><?= $post->getData('title')?></a></h3>
+            <?= $post->getData('publish_date'); ?><br>
+            <?= $post->getData('announce'); ?>
+            <div class="vconnect-blog-post-list-widget-read-more-link">
+                <a href="<?= $block->getPostUrl($post)?>">Read more...</a>
+            </div>
+    <?php endforeach;?>
+<?php endif; ?>

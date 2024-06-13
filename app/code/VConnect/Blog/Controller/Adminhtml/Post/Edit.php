@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace VConnect\Blog\Controller\Adminhtml\Post;
 
 use Magento\Framework\App\Action\HttpGetActionInterface;
-use VConnect\Blog\Controller\Adminhtml\Post;
+use VConnect\Blog\Controller\Adminhtml\Post as AbstractPostController;
 use Magento\Framework\View\Result\PageFactory;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Controller\ResultInterface;
@@ -13,7 +13,7 @@ use VConnect\Blog\Api\Data\PostInterfaceFactory;
 /**
  * Edit Blog Post action.
  */
-class Edit extends Post implements HttpGetActionInterface
+class Edit extends AbstractPostController implements HttpGetActionInterface
 {
     /**
      * Edit constructor.

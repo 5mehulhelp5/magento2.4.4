@@ -3,17 +3,23 @@ declare(strict_types=1);
 
 namespace VConnect\Blog\Model;
 
+use Magento\Framework\DataObject\IdentityInterface;
 use Magento\Framework\Model\AbstractModel;
 use VConnect\Blog\Api\Data\PostInterface;
 use VConnect\Blog\Model\ResourceModel\Post as PostResourceModel;
 
-class Post extends AbstractModel implements PostInterface
+class Post extends AbstractModel implements PostInterface, IdentityInterface
 {
-    /**#@+
+    /**
      * Post's publish statuses
      */
     public const PUBLISHED = 1;
     public const NOT_PUBLISHED = 0;
+
+    /**
+     * Post cache tag
+     */
+    public const CACHE_TAG = 'vconnect_blog_post';
 
     /**
      * Initialize resource model
@@ -141,5 +147,10 @@ class Post extends AbstractModel implements PostInterface
     public function setUpdatedAt(?string $updatedAt = null): PostInterface
     {
         return $this->setData(self::UPDATED_AT, $updatedAt);
+    }
+
+    public function getIdentities()
+    {
+        return [self::CACHE_TAG . '_' . $this->getId()];
     }
 }
