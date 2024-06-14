@@ -19,4 +19,17 @@
             <argument name="resourceModel" xsi:type="string">VConnect\Blog\Model\ResourceModel\Post</argument>
         </arguments>
     </type>
+    <type name="Magento\Framework\Console\CommandListInterface">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="vconnect_blog_posts_publish_manager" xsi:type="object">VConnect\Blog\Console\Command\PostsPublish</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="VConnect\Blog\Console\Command\PostsPublish">
+        <arguments>
+            <argument name="name" xsi:type="string">publish:vconnect:blog:posts</argument>
+        </arguments>
+    </type>
+
 </config>

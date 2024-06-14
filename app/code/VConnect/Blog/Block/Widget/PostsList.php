@@ -10,7 +10,6 @@ use Magento\Widget\Block\BlockInterface;
 use Magento\Framework\View\Element\Template\Context;
 use VConnect\Blog\Model\Post;
 use VConnect\Blog\Model\ResourceModel\Post\CollectionFactory;
-use VConnect\Blog\Model\ResourceModel\Post\Collection;
 use Magento\Framework\DB\Select;
 
 class PostsList extends Template implements BlockInterface, IdentityInterface
@@ -36,9 +35,9 @@ class PostsList extends Template implements BlockInterface, IdentityInterface
     }
 
     /**
-     * @return \VConnect\Blog\Model\ResourceModel\Post\Collection
+     * @return array
      */
-    public function getPosts(): Collection
+    public function getPosts(): array
     {
         return $this->getPostsCollection();
     }
@@ -52,17 +51,16 @@ class PostsList extends Template implements BlockInterface, IdentityInterface
     }
 
     /**
-     * @return \VConnect\Blog\Model\ResourceModel\Post\Collection
+     * @return array
      */
-    private function getPostsCollection(): Collection
+    private function getPostsCollection(): array
     {
         /** @var \VConnect\Blog\Model\ResourceModel\Post\Collection $collection */
         $collection = $this->collectionFactory->create();
         $collection->addFieldToFilter('publish', '1');
         $collection->setOrder('publish_date', Select::SQL_DESC);
-        $collection->setPageSize($this->getPostsPageSize());
 
-        return $collection;
+        return $collection->setPageSize($this->getPostsPageSize())->getItems();
     }
 
     /**
