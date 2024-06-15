@@ -4,16 +4,11 @@ declare(strict_types=1);
 namespace VConnect\Blog\Model;
 
 use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Tests\NamingConvention\true\bool;
-use VConnect\Blog\Api\Data\PostInterface;
 use VConnect\Blog\Api\PostRepositoryInterface;
 
 class PostsPublishManager
 {
-    /** @var PostInterface[] */
-    private array $noPublishedPosts = [];
-
-    private bool $postsPublishStatus;
+    private bool $publishOperationResult;
 
     public function __construct(
         private PostRepositoryInterface $postRepository,
@@ -23,59 +18,54 @@ class PostsPublishManager
     /**
      * @throws \Magento\Framework\Exception\CouldNotSaveException
      */
-    public function publishPosts(): void
+    public function execute(): void
     {
-        if ($this->getNotPublishedPosts()) {
-            $this->setPublishTrue();
+        $posts = $this->getNotPublishedPosts();
+        if (!empty($posts)) {
+            $this->publishPosts($posts);
         }
     }
 
     /**
-     * @return bool
+     * @return \VConnect\Blog\Api\Data\PostInterface[]
      */
-    private function getNotPublishedPosts(): bool
+    private function getNotPublishedPosts(): array
     {
         $searchCriteria = $this->searchCriteriaBuilder
             ->addFilter('publish', 0)
             ->addFilter('publish_date', date('Y-m-d H:i:s'), 'lt')
             ->create();
 
-        $this->noPublishedPosts = $this->postRepository->getList($searchCriteria)->getItems();
-
-        if (empty($this->noPublishedPosts)) {
-            return false;
-        }
-
-        return true;
+        return $this->postRepository->getList($searchCriteria)->getItems();
     }
 
     /**
      * @throws \Magento\Framework\Exception\CouldNotSaveException
      */
-    private function setPublishTrue(): void
+    private function publishPosts(array $posts): void
     {
         /** @var Post $post */
-        foreach ($this->noPublishedPosts as $post) {
+        foreach ($posts as $post) {
             $post->setPublish(true);
             $this->postRepository->save($post);
         }
 
-        $this->setPostsPublishStatus(true);
+        $this->setPublishOperationResult(true);
     }
 
     /**
      * @param bool $status
      */
-    private function setPostsPublishStatus(bool $status = false): void
+    private function setPublishOperationResult(bool $status = false): void
     {
-        $this->postsPublishStatus = $status;
+        $this->publishOperationResult = $status;
     }
 
     /**
      * @return bool
      */
-    public function getPostsPublishStatus(): bool
+    public function getPublishOperationResult(): bool
     {
-        return $this->postsPublishStatus;
+        return $this->publishOperationResult;
     }
 }

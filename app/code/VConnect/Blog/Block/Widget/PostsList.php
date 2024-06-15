@@ -39,7 +39,12 @@ class PostsList extends Template implements BlockInterface, IdentityInterface
      */
     public function getPosts(): array
     {
-        return $this->getPostsCollection();
+        /** @var \VConnect\Blog\Model\ResourceModel\Post\Collection $collection */
+        $collection = $this->collectionFactory->create();
+        $collection->addFieldToFilter('publish', '1');
+        $collection->setOrder('publish_date', Select::SQL_DESC);
+
+        return $collection->setPageSize($this->getPostsPageSize())->getItems();
     }
 
     public function getPostUrl(Post $post): string
@@ -48,19 +53,6 @@ class PostsList extends Template implements BlockInterface, IdentityInterface
             'vconnect_blog/post/view',
             ['id' => $post->getData('entity_id'), '_secure' => true]
         );
-    }
-
-    /**
-     * @return array
-     */
-    private function getPostsCollection(): array
-    {
-        /** @var \VConnect\Blog\Model\ResourceModel\Post\Collection $collection */
-        $collection = $this->collectionFactory->create();
-        $collection->addFieldToFilter('publish', '1');
-        $collection->setOrder('publish_date', Select::SQL_DESC);
-
-        return $collection->setPageSize($this->getPostsPageSize())->getItems();
     }
 
     /**

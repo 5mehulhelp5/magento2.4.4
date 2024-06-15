@@ -16,7 +16,7 @@ class PostsPublisher
     public function execute(): void
     {
         try {
-            $this->publishManager->publishPosts();
+            $this->publishManager->execute();
         } catch (\Exception $exception) {
             $this->logger->notice($exception->getMessage());
         }

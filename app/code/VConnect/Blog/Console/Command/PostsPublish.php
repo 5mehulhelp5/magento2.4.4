@@ -25,8 +25,8 @@ class PostsPublish extends Command
     protected function configure(): void
     {
         $this->setDescription(
-            'Console command to publish blog posts, which `publish_date` is lower than current date with time,
-            and `publish` status is \'false\'.'
+            'Console command to publish blog posts, ' .
+            'which `publish_date` is lower than current date with time, and `publish` status is false.'
         );
 
         parent::configure();
@@ -40,8 +40,8 @@ class PostsPublish extends Command
     public function execute(InputInterface $input, OutputInterface $output)
     {
         try {
-            $this->publishManager->publishPosts();
-            if ($this->publishManager->getPostsPublishStatus()) {
+            $this->publishManager->execute();
+            if ($this->publishManager->getPublishOperationResult()) {
                 $output->writeln("Post(s) were successfully published.");
             }
 

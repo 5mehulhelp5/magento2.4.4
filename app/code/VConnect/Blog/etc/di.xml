@@ -31,5 +31,4 @@
             <argument name="name" xsi:type="string">publish:vconnect:blog:posts</argument>
         </arguments>
     </type>
-
 </config>
