@@ -44,7 +44,7 @@ class PostsPublish extends Command
             if ($this->publishManager->getPublishOperationResult()) {
                 $output->writeln("Post(s) were successfully published.");
             } else {
-                $output->writeln("Post(s) were not published.");
+                $output->writeln("There are no posts to publish.");
             }
         } catch (\Exception) {
             parent::execute($input, $output);

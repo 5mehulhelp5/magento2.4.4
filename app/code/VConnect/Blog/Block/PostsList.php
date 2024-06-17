@@ -48,7 +48,14 @@ class PostsList extends Template implements IdentityInterface
      */
     public function getPostUrl(Post $post): string
     {
-        return $this->urlBuilder->getBaseUrl() . 'vconnect_blog/' . $post->getUrlKey();
+        $baseUrl = $this->urlBuilder->getBaseUrl() . 'blog/';
+        if (!empty($post->getUrlKey()) && !is_null($post->getUrlKey())) {
+            $postUrl = $post->getUrlKey();
+        } else {
+            $postUrl = 'post-' . $post->getEntityId();
+        }
+
+        return $baseUrl . $postUrl;
     }
 
     /**

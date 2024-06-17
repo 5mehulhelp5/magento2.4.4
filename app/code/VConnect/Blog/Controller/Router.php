@@ -32,14 +32,14 @@ class Router implements RouterInterface
         $pathInfo = trim((string)$request->getPathInfo(), '/');
 
         $pathInfoParts = explode('/', $pathInfo);
-        if (!empty($pathInfoParts[0]) && $pathInfoParts[0] === 'vconnect_blog' && !empty($pathInfoParts[1])) {
+        if (!empty($pathInfoParts[0]) && $pathInfoParts[0] === 'blog' && !empty($pathInfoParts[1])) {
             $urlKey = $pathInfoParts[1];
         } else {
             return null;
         }
 
         $postId = $this->postUrlKeyChecker->checkUrlKey($urlKey);
-        if (!$postId) {
+        if (is_null($postId)) {
             return null;
         }
 

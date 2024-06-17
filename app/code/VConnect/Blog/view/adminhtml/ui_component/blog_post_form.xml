@@ -116,7 +116,7 @@
                 <dataType>text</dataType>
                 <label translate="true">Post Url Key</label>
                 <notice translate="true">
-                    Write post url key in such way : post-some-post-url-key.phtml . As a result : post-world-politic-problems.phtml
+                    Write post url key in such way : post-some-post-url-key.html . As a result : post-world-politic-problems.html
                 </notice>
                 <tooltip>
                     <description translate="true">
