@@ -38,9 +38,9 @@ interface PostInterface
     public function setTitle(string $title): self;
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getContent(): string;
+    public function getContent(): ?string;
 
     /**
      * @param string $content
@@ -49,9 +49,9 @@ interface PostInterface
     public function setContent(string $content): self;
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getAnnounce(): string;
+    public function getAnnounce(): ?string;
 
     /**
      * @param string $announce

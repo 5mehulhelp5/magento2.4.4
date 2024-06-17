@@ -9,9 +9,12 @@ use Magento\Framework\View\Result\PageFactory;
 use Magento\Framework\View\Result\Page;
 use VConnect\Blog\Api\PostRepositoryInterface;
 use Magento\Framework\Controller\Result\ForwardFactory;
+use VConnect\Blog\Model\Post;
 
 class View implements HttpGetActionInterface
 {
+    private Post $post;
+
     public function __construct(
         private PageFactory $pageFactory,
         private RequestInterface $request,
@@ -24,6 +27,7 @@ class View implements HttpGetActionInterface
         try {
             $id = $this->request->getParam('id');
             $this->checkPostId($id);
+            $this->isPostPublished();
 
             /** @var Page $page */
             $page = $this->pageFactory->create();
@@ -50,6 +54,18 @@ class View implements HttpGetActionInterface
             );
         }
 
-        $this->postRepositoryInterface->get((int)$postId);
+        $this->post = $this->postRepositoryInterface->get((int)$postId);
+    }
+
+    /**
+     * @throws \Exception
+     */
+    private function isPostPublished()
+    {
+        if ($this->post->getPublish() === false) {
+            throw new \Exception(
+                'Post is not available yet, because his attribute `publish` is \'false\' !'
+            );
+        }
     }
 }
