@@ -14,6 +14,7 @@ interface PostInterface
     public const PUBLISH = 'publish';
     public const CREATED_AT = 'created_at';
     public const UPDATED_AT = 'updated_at';
+    public const URL_KEY = 'url_key';
 
     /**
      * @return mixed
@@ -102,4 +103,15 @@ interface PostInterface
      * @return $this
      */
     public function setUpdatedAt(?string $updatedAt = null): self;
+
+    /**
+     * @return string|null
+     */
+    public function getUrlKey(): ?string;
+
+    /**
+     * @param string|null $urlKey
+     * @return $this
+     */
+    public function setUrlKey(?string $urlKey = null): self;
 }

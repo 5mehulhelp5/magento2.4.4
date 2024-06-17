@@ -49,10 +49,7 @@ class PostsList extends Template implements BlockInterface, IdentityInterface
 
     public function getPostUrl(Post $post): string
     {
-        return $this->urlBuilder->getUrl(
-            'vconnect_blog/post/view',
-            ['id' => $post->getData('entity_id'), '_secure' => true]
-        );
+        return $this->urlBuilder->getBaseUrl() . 'vconnect_blog/' . $post->getUrlKey();
     }
 
     /**

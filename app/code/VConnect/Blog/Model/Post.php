@@ -149,6 +149,23 @@ class Post extends AbstractModel implements PostInterface, IdentityInterface
         return $this->setData(self::UPDATED_AT, $updatedAt);
     }
 
+    /**
+     * @return string|null
+     */
+    public function getUrlKey(): ?string
+    {
+        return $this->getData(self::URL_KEY);
+    }
+
+    /**
+     * @param string|null $urlKey
+     * @return PostInterface
+     */
+    public function setUrlKey(?string $urlKey = null): PostInterface
+    {
+        return $this->setData(self::URL_KEY, $urlKey);
+    }
+
     public function getIdentities()
     {
         return [self::CACHE_TAG . '_' . $this->getId()];
