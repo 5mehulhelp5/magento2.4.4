@@ -48,9 +48,9 @@ class Post extends AbstractModel implements PostInterface, IdentityInterface
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getContent(): string
+    public function getContent(): ?string
     {
         return $this->getData(self::CONTENT);
     }
@@ -65,9 +65,9 @@ class Post extends AbstractModel implements PostInterface, IdentityInterface
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getAnnounce(): string
+    public function getAnnounce(): ?string
     {
         return $this->getData(self::ANNOUNCE);
     }
