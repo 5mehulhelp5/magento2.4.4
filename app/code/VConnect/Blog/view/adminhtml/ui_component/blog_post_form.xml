@@ -103,6 +103,31 @@
                 <dataScope>announce</dataScope>
             </settings>
         </field>
+        <field name="url_key" sortOrder="40" formElement="input">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">post</item>
+                </item>
+            </argument>
+            <settings>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+                <dataType>text</dataType>
+                <label translate="true">Post Url Key</label>
+                <notice translate="true">
+                    Write post url key in such way : post-some-post-url-key.html . As a result : post-world-politic-problems.html
+                </notice>
+                <tooltip>
+                    <description translate="true">
+                        Warning : If url key already exist, the url key you are adding will not be saved.
+                        &lt;br/&gt;
+                        All Url Keys should be unique.
+                    </description>
+                </tooltip>
+                <dataScope>url_key</dataScope>
+            </settings>
+        </field>
         <field name="publish_date" sortOrder="50" formElement="date">
             <settings>
                 <validation>

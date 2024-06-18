@@ -47,14 +47,6 @@ class PostsList extends Template implements BlockInterface, IdentityInterface
         return $collection->setPageSize($this->getPostsPageSize())->getItems();
     }
 
-    public function getPostUrl(Post $post): string
-    {
-        return $this->urlBuilder->getUrl(
-            'vconnect_blog/post/view',
-            ['id' => $post->getData('entity_id'), '_secure' => true]
-        );
-    }
-
     /**
      * Returns how many posts should be displayed
      * @return int

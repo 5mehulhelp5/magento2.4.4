@@ -43,18 +43,6 @@ class PostsList extends Template implements IdentityInterface
     }
 
     /**
-     * @param \VConnect\Blog\Model\Post $post
-     * @return string
-     */
-    public function getPostUrl(Post $post): string
-    {
-        return $this->urlBuilder->getUrl(
-            'vconnect_blog/post/view',
-            ['id' => $post->getData('entity_id'), '_secure' => true]
-        );
-    }
-
-    /**
      * @return array
      */
     public function getIdentities(): array
