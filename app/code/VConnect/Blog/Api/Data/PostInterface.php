@@ -114,4 +114,11 @@ interface PostInterface
      * @return $this
      */
     public function setUrlKey(?string $urlKey = null): self;
+
+    /**
+     * Returns url path of post page
+     *
+     * @return string
+     */
+    public function getUrl(): string;
 }
