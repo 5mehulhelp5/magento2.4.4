@@ -39,7 +39,7 @@ class Router implements RouterInterface
         }
 
         $postId = $this->postUrlKeyChecker->checkUrlKey($urlKey);
-        if (is_null($postId)) {
+        if (empty($postId)) {
             return null;
         }
 

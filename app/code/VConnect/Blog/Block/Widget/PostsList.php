@@ -50,7 +50,7 @@ class PostsList extends Template implements BlockInterface, IdentityInterface
     public function getPostUrl(Post $post): string
     {
         $postUrlKey = $post->getUrlKey();
-        if ($postUrlKey !== null && !empty($postUrlKey)) {
+        if (!empty($postUrlKey)) {
             $postUrl = $this->urlBuilder->getBaseUrl() . 'blog/' . $postUrlKey;
         } else {
             $postUrl = $this->urlBuilder->getUrl(
