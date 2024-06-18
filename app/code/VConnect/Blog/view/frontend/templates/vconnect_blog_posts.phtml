@@ -14,7 +14,7 @@ $posts = $block->getPosts();
     <p>There are no posts in this blog.</p>
 <?php else: ?>
         <?php foreach ($posts as $post): ?>
-                <a href="<?= $block->getPostUrl($post); ?>">
+                <a href="<?= $post->getUrl(); ?>">
                     <h3><?= $post->getTitle(); ?></h3>
                 </a>
                 <div class="vconnect-blog-post-list-publish-date">
