@@ -50,4 +50,19 @@ class PostView extends Template implements IdentityInterface
     {
         return $this->post->getIdentities();
     }
+
+    /**
+     * @return PostView
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    protected function _prepareLayout()
+    {
+        $post = $this->getPost();
+
+        $this->pageConfig->setMetaTitle($post->getMetaTitle());
+        $this->pageConfig->setKeywords($post->getMetaKeywords());
+        $this->pageConfig->setDescription($post->getMetaDescription());
+
+        return parent::_prepareLayout();
+    }
 }

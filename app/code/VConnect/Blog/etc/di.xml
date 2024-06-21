@@ -31,4 +31,16 @@
             <argument name="name" xsi:type="string">publish:vconnect:blog:posts</argument>
         </arguments>
     </type>
+    <type name="Magento\Sitemap\Model\ItemProvider\Composite">
+        <arguments>
+            <argument name="itemProviders" xsi:type="array">
+                <item name="postsUrlProvider" xsi:type="object">VConnect\Blog\Model\Sitemap\ItemProvider\Post</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="VConnect\Blog\Model\Sitemap\ItemProvider\Post">
+        <arguments>
+            <argument name="configReader" xsi:type="object">Magento\Sitemap\Model\ItemProvider\CmsPageConfigReader</argument>
+        </arguments>
+    </type>
 </config>
