@@ -6,7 +6,6 @@ namespace VConnect\Blog\Controller\Post;
 use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\View\Result\PageFactory;
-use Magento\Framework\View\Result\Page;
 use VConnect\Blog\Api\PostRepositoryInterface;
 use Magento\Framework\Controller\Result\ForwardFactory;
 use VConnect\Blog\Model\Post;
@@ -29,11 +28,7 @@ class View implements HttpGetActionInterface
             $this->checkPostId($id);
             $this->isPostPublished();
 
-            /** @var Page $page */
-            $page = $this->pageFactory->create();
-            $page->getConfig()->getTitle()->set(__('VConnect Blog Post'));
-
-            return $page;
+            return $this->pageFactory->create();
         } catch (\Exception) {
             $resultForward = $this->forwardFactory->create();
             $resultForward->setController('index');

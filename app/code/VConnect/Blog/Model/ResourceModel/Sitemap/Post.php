@@ -6,20 +6,20 @@ namespace VConnect\Blog\Model\ResourceModel\Sitemap;
 use Magento\Framework\DataObject;
 use VConnect\Blog\Api\Data\PostInterface;
 use VConnect\Blog\Model\Post as PostModel;
+use VConnect\Blog\Model\PostFactory;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 use Magento\Framework\Model\ResourceModel\Db\Context;
-use VConnect\Blog\Model\ResourceModel\Post\CollectionFactory;
 
 class Post extends AbstractDb
 {
     /**
      * Post constructor.
-     * @param \VConnect\Blog\Model\ResourceModel\Post\CollectionFactory $postCollectionFactory
+     * @param \VConnect\Blog\Model\PostFactory $postFactory
      * @param \Magento\Framework\Model\ResourceModel\Db\Context $context
      * @param string|null $connectionName
      */
     public function __construct(
-        private CollectionFactory $postCollectionFactory,
+        private PostFactory $postFactory,
         Context $context,
         string $connectionName = null,
     ) {
@@ -34,17 +34,28 @@ class Post extends AbstractDb
 
     /**
      * @return array
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Zend_Db_Statement_Exception
      */
     public function getCollection(): array
     {
-        $collection = $this->postCollectionFactory->create();
-        $collection->addFilter('publish', true);
-        $postsCollection = $collection->getItems();
+        $select = $this->getConnection()->select()->from(
+            ['main_table' => $this->getMainTable()],
+            [$this->getIdFieldName(), PostInterface::URL_KEY, PostInterface::UPDATED_AT]
+        )->where(
+            'main_table.publish = 1'
+        );
+
+        $query = $this->getConnection()->query($select);
 
         $posts = [];
-        /** @var PostModel $postModel */
-        foreach ($postsCollection as $postModel) {
-            $post = $this->_prepareObject($postModel);
+        while ($row = $query->fetch()) {
+            /** @var PostModel $post */
+            $post = $this->postFactory->create();
+            $post->setData($row);
+            $post = $this->_prepareObject($post);
+
+            /** @var DataObject $post */
             $posts[$post->getId()] = $post;
         }
 
