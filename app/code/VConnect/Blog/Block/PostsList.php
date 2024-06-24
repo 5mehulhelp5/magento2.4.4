@@ -7,9 +7,7 @@ use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\Framework\DataObject\IdentityInterface;
 use VConnect\Blog\Api\Data\PostInterface;
-use VConnect\Blog\Model\Post;
 use VConnect\Blog\Service\PostsProvider;
-use Magento\Framework\UrlInterface;
 
 class PostsList extends Template implements IdentityInterface
 {
@@ -20,12 +18,10 @@ class PostsList extends Template implements IdentityInterface
      * PostsList constructor.
      * @param \VConnect\Blog\Service\PostsProvider $postsProvider
      * @param \Magento\Framework\View\Element\Template\Context $context
-     * @param \Magento\Framework\UrlInterface $urlBuilder
      * @param array $data
      */
     public function __construct(
         private PostsProvider $postsProvider,
-        private UrlInterface $urlBuilder,
         Context $context,
         array $data = []
     ) {

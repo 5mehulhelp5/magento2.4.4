@@ -27,7 +27,7 @@ class PostsProvider
     public function getPosts(): array
     {
         /** @var \Magento\Framework\Api\SortOrder $sortOrder */
-        $sortOrder = $this->sortOrderBuilder->setField('created_at')
+        $sortOrder = $this->sortOrderBuilder->setField('publish_date')
             ->setDirection('DESC')
             ->create();
 

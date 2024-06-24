@@ -7,6 +7,9 @@
         <column xsi:type="text" name="title" nullable="false" comment="Title"/>
         <column xsi:type="text" name="content" nullable="false" comment="Content"/>
         <column xsi:type="text" name="announce" nullable="false" comment="Post Brief Description"/>
+        <column xsi:type="varchar" name="meta_title" nullable="false" length="255" comment="Post Meta Title"/>
+        <column xsi:type="text" name="meta_keywords" nullable="false" comment="Post Meta Keywords"/>
+        <column xsi:type="text" name="meta_description" nullable="false" comment="Post Meta Description"/>
         <column xsi:type="timestamp" name="publish_date" on_update="false" nullable="true" comment="Post Publish Time"/>
         <column xsi:type="boolean" name="publish" nullable="false" default="false" comment="Is Post Published"/>
         <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP"
@@ -20,5 +23,10 @@
         <constraint xsi:type="unique" referenceId="UNIQUE_URL_KEY">
             <column name="url_key"/>
         </constraint>
+        <index referenceId="BLOG_POST_ENTITY_META_TITLE_META_KEYWORDS_META_DESCRIPTION" indexType="fulltext">
+            <column name="meta_title"/>
+            <column name="meta_keywords"/>
+            <column name="meta_description"/>
+        </index>
     </table>
 </schema>

@@ -15,6 +15,9 @@ interface PostInterface
     public const CREATED_AT = 'created_at';
     public const UPDATED_AT = 'updated_at';
     public const URL_KEY = 'url_key';
+    public const META_TITLE = 'meta_title';
+    public const META_KEYWORDS = 'meta_keywords';
+    public const META_DESCRIPTION = 'meta_description';
 
     /**
      * @return mixed
@@ -121,4 +124,37 @@ interface PostInterface
      * @return string
      */
     public function getUrl(): string;
+
+    /**
+     * @return string|null
+     */
+    public function getMetaTitle(): ?string;
+
+    /**
+     * @param string $metaTitle
+     * @return $this
+     */
+    public function setMetaTitle(string $metaTitle): self;
+
+    /**
+     * @return string|null
+     */
+    public function getMetaKeywords(): ?string;
+
+    /**
+     * @param string $metaKeywords
+     * @return $this
+     */
+    public function setMetaKeywords(string $metaKeywords): self;
+
+    /**
+     * @return string|null
+     */
+    public function getMetaDescription(): ?string;
+
+    /**
+     * @param string $metaDescription
+     * @return $this
+     */
+    public function setMetaDescription(string $metaDescription): self;
 }
