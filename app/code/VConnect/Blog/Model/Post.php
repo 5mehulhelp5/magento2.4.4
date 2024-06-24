@@ -31,8 +31,8 @@ class Post extends AbstractModel implements PostInterface, IdentityInterface
      * @param \Magento\Framework\UrlInterface $urlBuilder
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
-     * @param AbstractResource|null $resource
-     * @param AbstractDb|null $resourceCollection
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource|null $resource
+     * @param \Magento\Framework\Data\Collection\AbstractDb|null $resourceCollection
      * @param array $data
      */
     public function __construct(
@@ -217,5 +217,56 @@ class Post extends AbstractModel implements PostInterface, IdentityInterface
         }
 
         return $postUrl;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getMetaTitle(): ?string
+    {
+        return $this->getData(self::META_TITLE);
+    }
+
+    /**
+     * @param string $metaTitle
+     * @return \VConnect\Blog\Api\Data\PostInterface
+     */
+    public function setMetaTitle(string $metaTitle): PostInterface
+    {
+        return $this->setData(self::META_TITLE, $metaTitle);
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getMetaKeywords(): ?string
+    {
+        return $this->getData(self::META_KEYWORDS);
+    }
+
+    /**
+     * @param string $metaKeywords
+     * @return \VConnect\Blog\Api\Data\PostInterface
+     */
+    public function setMetaKeywords(string $metaKeywords): PostInterface
+    {
+        return $this->setData(self::META_KEYWORDS, $metaKeywords);
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getMetaDescription(): ?string
+    {
+        return $this->getData(self::META_DESCRIPTION);
+    }
+
+    /**
+     * @param string $metaDescription
+     * @return \VConnect\Blog\Api\Data\PostInterface
+     */
+    public function setMetaDescription(string $metaDescription): PostInterface
+    {
+        return $this->setData(self::META_DESCRIPTION, $metaDescription);
     }
 }
