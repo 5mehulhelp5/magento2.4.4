@@ -8,7 +8,7 @@ use VConnect\Blog\Api\PostRepositoryInterface;
 
 class PostsPublishManager
 {
-    private bool $publishOperationResult;
+    private bool $publishOperationResult = false;
 
     public function __construct(
         private PostRepositoryInterface $postRepository,
@@ -56,7 +56,7 @@ class PostsPublishManager
     /**
      * @param bool $status
      */
-    private function setPublishOperationResult(bool $status = false): void
+    private function setPublishOperationResult(bool $status): void
     {
         $this->publishOperationResult = $status;
     }
