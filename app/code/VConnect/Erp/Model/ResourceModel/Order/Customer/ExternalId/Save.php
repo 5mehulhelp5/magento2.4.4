@@ -6,7 +6,7 @@ namespace VConnect\Erp\Model\ResourceModel\Order\Customer\ExternalId;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Sales\Api\Data\OrderInterface;
-use VConnect\Erp\Api\Data\ExternalIdInterface;
+use VConnect\Erp\Model\Config;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 
 class Save
@@ -21,16 +21,16 @@ class Save
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function execute(OrderInterface $order): void
+    public function save(OrderInterface $order): void
     {
         $orderId = $this->getOrderId($order);
         $customerExternalId = $this->getCustomerExternalId($order);
         $connection = $this->resourceConnection->getConnection();
         $connection->insert(
-            ExternalIdInterface::ORDER_EXTERNAL_ID_TABLE,
+            Config::ORDER_EXTERNAL_ID_TABLE,
             [
-                ExternalIdInterface::ORDER_ID => $orderId,
-                ExternalIdInterface::CUSTOMER_EXTERNAL_ID => $customerExternalId
+                Config::ORDER_ID => $orderId,
+                Config::CUSTOMER_EXTERNAL_ID => $customerExternalId
             ]
         );
     }
@@ -56,8 +56,8 @@ class Save
         $customer = $this->customerRepository->getById((int)$order->getCustomerId());
 
         /** @var \Magento\Framework\Api\AttributeInterface|null $customAttributeInterface */
-        $customAttributeInterface = $customer->getCustomAttribute(ExternalIdInterface::EXTERNAL_ID);
+        $customAttributeInterface = $customer->getCustomAttribute(Config::EXTERNAL_ID);
 
-        return $customAttributeInterface !== null ? $customAttributeInterface->getValue() : null;
+        return $customAttributeInterface ? $customAttributeInterface->getValue() : null;
     }
 }

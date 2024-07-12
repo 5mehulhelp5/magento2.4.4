@@ -5,7 +5,7 @@ namespace VConnect\Erp\Model\ResourceModel\Order\Customer\ExternalId;
 
 use Magento\Framework\App\ResourceConnection;
 use Magento\Sales\Api\Data\OrderInterface;
-use VConnect\Erp\Api\Data\ExternalIdInterface;
+use VConnect\Erp\Model\Config;
 
 class Get
 {
@@ -16,16 +16,16 @@ class Get
      * @param OrderInterface $order
      * @return string|null
      */
-    public function execute(OrderInterface $order): ?string
+    public function getOrderExternalId(OrderInterface $order): ?string
     {
         $connection = $this->resourceConnection->getConnection();
         $orderId = (int)$order->getEntityId();
         $select = $connection->select()
-            ->from(ExternalIdInterface::ORDER_EXTERNAL_ID_TABLE)
-            ->columns(ExternalIdInterface::CUSTOMER_EXTERNAL_ID)
-            ->where(ExternalIdInterface::ORDER_ID . ' in (?)', $orderId);
+            ->from(Config::ORDER_EXTERNAL_ID_TABLE)
+            ->columns(Config::CUSTOMER_EXTERNAL_ID)
+            ->where(Config::ORDER_ID . ' in (?)', $orderId);
         $data = $connection->fetchAssoc($select);
 
-        return $data[$orderId][ExternalIdInterface::CUSTOMER_EXTERNAL_ID] ?? null;
+        return $data[$orderId][Config::CUSTOMER_EXTERNAL_ID] ?? null;
     }
 }

@@ -22,6 +22,6 @@ class SaveCustomerExternalIdToOrder implements ObserverInterface
     {
         /** @var OrderInterface $order */
         $order = $observer->getEvent()->getOrder();
-        $this->customerExternalIdSaver->execute($order);
+        $this->customerExternalIdSaver->save($order);
     }
 }

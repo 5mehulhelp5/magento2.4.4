@@ -29,7 +29,7 @@ class OrderRepositoryPlugin
             $extensionAttributes = $this->extensionAttributesFactory->create(OrderInterface::class);
         }
 
-        $orderExternalId = $this->orderExternalIdGetter->execute($order);
+        $orderExternalId = $this->orderExternalIdGetter->getOrderExternalId($order);
 
         $extensionAttributes->setExternalId($orderExternalId);
         $order->setExtensionAttributes($extensionAttributes);

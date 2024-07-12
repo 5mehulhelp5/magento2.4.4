@@ -1,8 +1,8 @@
 <?php
 
-namespace VConnect\Erp\Api\Data;
+namespace VConnect\Erp\Model;
 
-interface ExternalIdInterface
+class Config
 {
     public const EXTERNAL_ID = 'external_id';
     public const ORDER_ID = 'order_id';
