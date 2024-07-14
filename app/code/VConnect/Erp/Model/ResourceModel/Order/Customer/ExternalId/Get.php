@@ -16,7 +16,7 @@ class Get
      * @param OrderInterface $order
      * @return string|null
      */
-    public function getOrderExternalId(OrderInterface $order): ?string
+    public function execute(OrderInterface $order): ?string
     {
         $connection = $this->resourceConnection->getConnection();
         $orderId = (int)$order->getEntityId();

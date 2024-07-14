@@ -21,7 +21,7 @@ class Save
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function save(OrderInterface $order): void
+    public function execute(OrderInterface $order): void
     {
         $orderId = $this->getOrderId($order);
         $customerExternalId = $this->getCustomerExternalId($order);

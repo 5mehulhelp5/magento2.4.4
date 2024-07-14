@@ -6,11 +6,11 @@ namespace VConnect\Erp\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Event\Observer;
 use Magento\Sales\Api\Data\OrderInterface;
-use VConnect\Erp\Model\ResourceModel\Order\Customer\ExternalId\Save as CustomerExternalIdSaver;
+use VConnect\Erp\Model\ResourceModel\Order\Customer\ExternalId\Save as SaveCustomerExternalId;
 
 class SaveCustomerExternalIdToOrder implements ObserverInterface
 {
-    public function __construct(private CustomerExternalIdSaver $customerExternalIdSaver)
+    public function __construct(private SaveCustomerExternalId $saveCustomerExternalIdToOrder)
     {}
 
     /**
@@ -22,6 +22,6 @@ class SaveCustomerExternalIdToOrder implements ObserverInterface
     {
         /** @var OrderInterface $order */
         $order = $observer->getEvent()->getOrder();
-        $this->customerExternalIdSaver->save($order);
+        $this->saveCustomerExternalIdToOrder->execute($order);
     }
 }

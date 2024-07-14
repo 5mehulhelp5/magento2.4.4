@@ -6,13 +6,13 @@ namespace VConnect\Erp\Plugin;
 use Magento\Framework\Api\ExtensionAttributesFactory;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
-use VConnect\Erp\Model\ResourceModel\Order\Customer\ExternalId\Get;
+use VConnect\Erp\Model\ResourceModel\Order\Customer\ExternalId\Get as GetCustomerExternalId;
 
 class OrderRepositoryPlugin
 {
     public function __construct(
         private ExtensionAttributesFactory $extensionAttributesFactory,
-        private Get $orderExternalIdGetter
+        private GetCustomerExternalId $getCustomerExternalId
     ) {}
 
     /**
@@ -29,7 +29,7 @@ class OrderRepositoryPlugin
             $extensionAttributes = $this->extensionAttributesFactory->create(OrderInterface::class);
         }
 
-        $orderExternalId = $this->orderExternalIdGetter->getOrderExternalId($order);
+        $orderExternalId = $this->getCustomerExternalId->execute($order);
 
         $extensionAttributes->setExternalId($orderExternalId);
         $order->setExtensionAttributes($extensionAttributes);
