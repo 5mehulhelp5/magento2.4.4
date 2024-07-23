@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Sales\Api\OrderRepositoryInterface">
+        <plugin name="vconnect_order_volume_order_repository_plugin"
+                type="VConnect\OrderVolume\Plugin\OrderRepositoryPlugin" />
+    </type>
+    <type name="Magento\Sales\Api\OrderItemRepositoryInterface">
+        <plugin name="vconnect_order_volume_order_item_repository_plugin"
+                type="VConnect\OrderVolume\Plugin\OrderItemRepositoryPlugin" />
+    </type>
+    <type name="Magento\Sales\Block\Adminhtml\Order\View\Items">
+        <plugin name="change-order-items-view-columns-position"
+                type="VConnect\OrderVolume\Plugin\Items\ChangeItemVolumeColumnPositionPlugin"
+                sortOrder="10"/>
+    </type>
+    <type name="Magento\Sales\Block\Adminhtml\Order\View\Items\Renderer\DefaultRenderer">
+        <plugin name="change-order-items-view-columns-data-position"
+                type="VConnect\OrderVolume\Plugin\Items\ChangeItemVolumeColumnDataPositionPlugin"
+                sortOrder="10"/>
+    </type>
+</config>
