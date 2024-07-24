@@ -58,10 +58,6 @@ class OrderRepositoryPlugin
             }
 
             $orderVolume = $this->getOrderVolume->execute($order);
-            $shippingAssignments = $extensionAttributes->getShippingAssignments();
-            foreach ($shippingAssignments as $shippingAssignment) {
-                $shippingAssignment->setItems([]);
-            }
 
             $extensionAttributes->setOrderVolume($orderVolume);
             $order->setExtensionAttributes($extensionAttributes);
