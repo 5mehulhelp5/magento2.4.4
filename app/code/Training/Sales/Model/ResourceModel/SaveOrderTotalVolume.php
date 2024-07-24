@@ -32,11 +32,11 @@ class SaveOrderTotalVolume
             OrderConfig::ENTITY_ID_COLUMN . ' = ' . $orderID
         );
 
-        $connection->update(
-            OrderConfig::SALES_ORDER_GRID_TABLE,
-            [OrderConfig::ORDER_VOLUME_COLUMN => $orderTotalVolume],
-            OrderConfig::ENTITY_ID_COLUMN . ' = ' . $orderID
-        );
+//        $connection->update(
+//            OrderConfig::SALES_ORDER_GRID_TABLE,
+//            [OrderConfig::ORDER_VOLUME_COLUMN => $orderTotalVolume],
+//            OrderConfig::ENTITY_ID_COLUMN . ' = ' . $orderID
+//        );
     }
 
     /**

@@ -3,51 +3,57 @@ declare(strict_types=1);
 
 namespace VConnect\OrderVolume\Plugin;
 
-use Magento\Framework\Api\ExtensionAttributesFactory;
 use Magento\Sales\Api\Data\OrderItemInterface;
 use Magento\Sales\Api\OrderItemRepositoryInterface;
 use VConnect\OrderVolume\Model\ResourceModel\Order\Item\Volume\GetOrderItemVolume;
 use Magento\Sales\Api\Data\OrderItemSearchResultInterface;
+use Magento\Sales\Api\Data\OrderItemExtensionInterfaceFactory;
 
 class OrderItemRepositoryPlugin
 {
     public function __construct(
-        private ExtensionAttributesFactory $extensionAttributesFactory,
+        private OrderItemExtensionInterfaceFactory $orderItemExtensionInterfaceFactory,
         private GetOrderItemVolume $getOrderItemVolume
     ) {}
 
     /**
      * @param OrderItemRepositoryInterface $subject
-     * @param OrderItemInterface $order
+     * @param OrderItemInterface $orderItem
      * @return OrderItemInterface
      */
     public function afterGet(OrderItemRepositoryInterface $subject, OrderItemInterface $orderItem): OrderItemInterface
     {
-        /** @var \Magento\Sales\Api\Data\OrderItemExtensionInterface|null $extensionAttributes */
-        $extensionAttributes = $orderItem->getExtensionAttributes();
+        $orderItemInArray = $this->setOrderItemVolumeExtensionAttribute([$orderItem]);
 
-        if ($extensionAttributes === null) {
-            $extensionAttributes = $this->extensionAttributesFactory->create(OrderItemInterface::class);
-        }
-
-        $orderItemVolume = $this->getOrderItemVolume->execute($orderItem);
-
-        $extensionAttributes->setItemVolume($orderItemVolume);
-        $orderItem->setExtensionAttributes($extensionAttributes);
-
-        return $orderItem;
+        return $orderItemInArray[0];
     }
 
+    /**
+     * @param OrderItemRepositoryInterface $subject
+     * @param OrderItemSearchResultInterface $orderItemSearchResult
+     * @return OrderItemSearchResultInterface
+     */
     public function afterGetList(
         OrderItemRepositoryInterface $subject,
         OrderItemSearchResultInterface $orderItemSearchResult
-    ) {
-        foreach ($orderItemSearchResult->getItems() as $orderItem) {
+    ): OrderItemSearchResultInterface {
+        $this->setOrderItemVolumeExtensionAttribute($orderItemSearchResult->getItems());
+
+        return $orderItemSearchResult;
+    }
+
+    /**
+     * @param OrderItemInterface[] $orderItems
+     * @return OrderItemInterface[]
+     */
+    private function setOrderItemVolumeExtensionAttribute(array $orderItems): array
+    {
+        foreach ($orderItems as  $orderItem) {
             /** @var \Magento\Sales\Api\Data\OrderItemExtensionInterface|null $extensionAttributes */
             $extensionAttributes = $orderItem->getExtensionAttributes();
 
             if ($extensionAttributes === null) {
-                $extensionAttributes = $this->extensionAttributesFactory->create(OrderItemInterface::class);
+                $extensionAttributes = $this->orderItemExtensionInterfaceFactory->create();
             }
 
             $orderItemVolume = $this->getOrderItemVolume->execute($orderItem);
@@ -56,6 +62,6 @@ class OrderItemRepositoryPlugin
             $orderItem->setExtensionAttributes($extensionAttributes);
         }
 
-        return $orderItemSearchResult;
+        return $orderItems;
     }
 }

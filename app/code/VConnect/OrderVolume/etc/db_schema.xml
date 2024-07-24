@@ -2,12 +2,12 @@
 <schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
     <table name="sales_order">
-        <column xsi:type="decimal" name="order_volume" scale="6" precision="20" nullable="false" comment="Order Volume"/>
+        <column xsi:type="decimal" name="order_volume" scale="6" precision="20" nullable="true" comment="Order Volume"/>
     </table>
     <table name="sales_order_grid">
-        <column xsi:type="decimal" name="order_volume" scale="6" precision="20" nullable="false" comment="Order Volume"/>
+        <column xsi:type="decimal" name="order_volume" scale="6" precision="20" nullable="true" comment="Order Volume"/>
     </table>
     <table name="sales_order_item">
-        <column xsi:type="decimal" name="item_volume" scale="6" precision="20" nullable="false" comment="Order Item Volume"/>
+        <column xsi:type="decimal" name="item_volume" scale="6" precision="20" nullable="true" comment="Order Item Volume"/>
     </table>
 </schema>

@@ -17,6 +17,6 @@ class ChangeItemVolumeColumnDataPositionPlugin
      */
     public function afterGetColumns(DefaultRenderer $subject, $result): array
     {
-        return $this->changeItemVolumeColumnDataPosition->execute($result, 'qty');
+        return $this->changeItemVolumeColumnDataPosition->execute($result);
     }
 }

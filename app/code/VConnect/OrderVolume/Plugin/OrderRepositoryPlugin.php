@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace VConnect\OrderVolume\Plugin;
 
+use Magento\Sales\Api\Data\OrderExtensionInterface;
 use Magento\Sales\Api\Data\OrderExtensionInterfaceFactory;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderSearchResultInterface;
@@ -23,27 +24,33 @@ class OrderRepositoryPlugin
      */
     public function afterGet(OrderRepositoryInterface $subject, OrderInterface $order): OrderInterface
     {
-        /** @var \Magento\Sales\Api\Data\OrderExtensionInterface|null $orderExtensionAttributes */
-        $orderExtensionAttributes = $order->getExtensionAttributes();
+        $orderInArray = $this->setOrderVolumeExtensionAttribute([$order]);
 
-        if ($orderExtensionAttributes === null) {
-            $orderExtensionAttributes = $this->orderExtensionInterfaceFactory->create();
-        }
-
-        $orderVolume = $this->getOrderVolume->execute($order);
-
-        $orderExtensionAttributes->setOrderVolume($orderVolume);
-        $order->setExtensionAttributes($orderExtensionAttributes);
-
-        return $order;
+        return $orderInArray[0];
     }
 
+    /**
+     * @param OrderRepositoryInterface $subject
+     * @param OrderSearchResultInterface $orderSearchResult
+     * @return OrderSearchResultInterface
+     */
     public function afterGetList(
         OrderRepositoryInterface $subject,
         OrderSearchResultInterface $orderSearchResult
     ): OrderSearchResultInterface {
-        foreach ($orderSearchResult->getItems() as $order) {
-            /** @var \Magento\Sales\Api\Data\OrderExtensionInterface|null $extensionAttributes */
+        $this->setOrderVolumeExtensionAttribute($orderSearchResult->getItems());
+
+        return $orderSearchResult;
+    }
+
+    /**
+     * @param OrderInterface[] $orders
+     * @return OrderInterface[]
+     */
+    private function setOrderVolumeExtensionAttribute(array $orders): array
+    {
+        foreach ($orders as  $order) {
+            /** @var OrderExtensionInterface|null $extensionAttributes */
             $extensionAttributes = $order->getExtensionAttributes();
 
             if ($extensionAttributes === null) {
@@ -56,6 +63,6 @@ class OrderRepositoryPlugin
             $order->setExtensionAttributes($extensionAttributes);
         }
 
-        return $orderSearchResult;
+        return $orders;
     }
 }

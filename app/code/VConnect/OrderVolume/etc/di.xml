@@ -18,4 +18,35 @@
                 type="VConnect\OrderVolume\Plugin\Items\ChangeItemVolumeColumnDataPositionPlugin"
                 sortOrder="10"/>
     </type>
+    <virtualType name="Magento\Sales\Model\ResourceModel\Order\Grid">
+        <arguments>
+            <argument name="columns" xsi:type="array">
+                <item name="order_volume" xsi:type="string">sales_order.order_volume</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!--Below the next two virtualTypes and arguments for Plugins were made for training purposes.-->
+    <virtualType name="VConnect\OrderVolume\Service\Order\View\Items\Columns\Volume\ChangeColumnPosition"
+                 type="VConnect\OrderVolume\Service\Order\View\Items\Columns\Volume\ChangePosition">
+        <arguments>
+            <argument name="afterColumnName" xsi:type="string">ordered-qty</argument>
+        </arguments>
+    </virtualType>
+    <type name="VConnect\OrderVolume\Plugin\Items\ChangeItemVolumeColumnPositionPlugin">
+        <arguments>
+            <argument name="changeItemVolumeColumnPosition" xsi:type="object">VConnect\OrderVolume\Service\Order\View\Items\Columns\Volume\ChangeColumnPosition</argument>
+        </arguments>
+    </type>
+    <virtualType name="VConnect\OrderVolume\Service\Order\View\Items\Columns\Volume\ChangeColumnDataPosition"
+                 type="VConnect\OrderVolume\Service\Order\View\Items\Columns\Volume\ChangePosition">
+        <arguments>
+            <argument name="afterColumnName" xsi:type="string">qty</argument>
+        </arguments>
+    </virtualType>
+    <type name="VConnect\OrderVolume\Plugin\Items\ChangeItemVolumeColumnDataPositionPlugin">
+        <arguments>
+            <argument name="changeItemVolumeColumnDataPosition" xsi:type="object">VConnect\OrderVolume\Service\Order\View\Items\Columns\Volume\ChangeColumnDataPosition</argument>
+        </arguments>
+    </type>
 </config>

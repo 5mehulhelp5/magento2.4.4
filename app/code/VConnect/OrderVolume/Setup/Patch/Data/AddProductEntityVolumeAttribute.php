@@ -12,11 +12,12 @@ use Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface;
 
 class AddProductEntityVolumeAttribute implements DataPatchInterface
 {
+    public const PRODUCT_VOLUME = 'volume';
+
     public function __construct(
         private ModuleDataSetupInterface $moduleDataSetup,
         private EavSetupFactory $eavSetupFactory
     ) {}
-
 
     public function apply()
     {
@@ -24,15 +25,15 @@ class AddProductEntityVolumeAttribute implements DataPatchInterface
         $eavSetup = $this->eavSetupFactory->create(['setup' => $this->moduleDataSetup]);
         $eavSetup->addAttribute(
             Product::ENTITY,
-            'volume',
+            self::PRODUCT_VOLUME,
             [
                 'group' => 'General',
                 'type' => 'decimal',
                 'label' => 'Product Volume',
                 'input' => 'text',
-                'required' => true,
+                'required' => false,
                 'visible' => true,
-                'user_defined' => false,
+                'user_defined' => true,
                 'sort_order' => 100,
                 'searchable' => false,
                 'filterable' => false,
@@ -43,7 +44,8 @@ class AddProductEntityVolumeAttribute implements DataPatchInterface
                 'is_visible_in_grid' => true,
                 'is_filterable_in_grid' => true,
                 'global' => ScopedAttributeInterface::SCOPE_GLOBAL,
-                'unique' => false
+                'unique' => false,
+                'apply_to' => 'simple,configurable,bundle,grouped'
             ]
         );
     }

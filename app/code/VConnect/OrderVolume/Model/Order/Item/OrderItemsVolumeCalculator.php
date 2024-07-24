@@ -5,42 +5,39 @@ namespace VConnect\OrderVolume\Model\Order\Item;
 
 use Magento\Catalog\Model\Product;
 use Magento\Sales\Api\Data\OrderItemInterface;
-use VConnect\OrderVolume\Model\Product\Config as ProductConfig;
+use VConnect\OrderVolume\Setup\Patch\Data\AddProductEntityVolumeAttribute as ProductConfig;
 
 class OrderItemsVolumeCalculator
 {
     private array $orderItemsVolumeData = [];
 
+    /**
+     * @param array $orderItems
+     */
     public function calculate(array $orderItems): void
     {
         /** @var OrderItemInterface $orderItem */
-        foreach ($orderItems as $orderItem) {
-            $this->setCalculationResult((int)$orderItem->getItemId(), $this->getOrderItemVolume($orderItem));
+        foreach ($orderItems as $orderItemId => $orderItem) {
+            $this->setCalculationResult($orderItemId, $this->getOrderItemVolume($orderItem));
         }
     }
 
     /**
      * @param OrderItemInterface $orderItem
-     * @return float|int
-     * @throws \Exception
+     * @return float|null
      */
-    private function getOrderItemVolume(OrderItemInterface $orderItem): float|int
+    private function getOrderItemVolume(OrderItemInterface $orderItem): ?float
     {
         $orderItemQuantity = $orderItem->getQtyOrdered();
         $productVolume = $this->getProductVolume($orderItem);
-        if ($this->isFloat($productVolume)) {
-            $productVolume = (float)$productVolume;
-        } else {
-            $productVolume = (int)$productVolume;
-        }
 
-        return $this->calculateOrderItemVolume($orderItemQuantity, $productVolume);
+        return is_null($orderItemQuantity) || is_null($productVolume) ?
+            null : $this->calculateOrderItemVolume($orderItemQuantity, (float)$productVolume);
     }
 
     /**
      * @param OrderItemInterface $orderItem
-     * @return mixed
-     * @throws \Exception
+     * @return mixed|null
      */
     private function getProductVolume(OrderItemInterface $orderItem)
     {
@@ -49,23 +46,18 @@ class OrderItemsVolumeCalculator
 
         /** @var \Magento\Framework\Api\AttributeInterface $customAttributeInterface */
         $customAttributeInterface = $product->getCustomAttribute(ProductConfig::PRODUCT_VOLUME);
-        if ($customAttributeInterface === null) {
-            throw new \Exception(
-                'Product Custom Attribute : \'' . ProductConfig::PRODUCT_VOLUME . '\' doesn\'t exist!'
-            );
-        }
 
-        return $customAttributeInterface->getValue();
+        return $customAttributeInterface === null ? null : $customAttributeInterface->getValue();
     }
 
     /**
      * @param int|float $orderItemQuantity
-     * @param int|float $productVolume
-     * @return int|float
+     * @param float $productVolume
+     * @return float
      */
-    private function calculateOrderItemVolume(int|float $orderItemQuantity, int|float $productVolume): int|float
+    private function calculateOrderItemVolume(int|float $orderItemQuantity, float $productVolume): float
     {
-        return $orderItemQuantity * $productVolume;
+        return (float)($orderItemQuantity * $productVolume);
     }
 
     public function getCalculationResult(): array
@@ -73,23 +65,13 @@ class OrderItemsVolumeCalculator
         return $this->orderItemsVolumeData;
     }
 
-    private function setCalculationResult(int $orderItemId, int|float $orderItemVolume): void
+    /**
+     * @param int $orderItemId
+     * @param float|null $orderItemVolume
+     */
+    private function setCalculationResult(int $orderItemId, ?float $orderItemVolume): void
     {
         $this->orderItemsVolumeData[$orderItemId] = $orderItemVolume;
-    }
-
-    /**
-     * @param string $data
-     * @return bool
-     */
-    private function isFloat(string $data): bool
-    {
-        preg_match('/\./', $data, $matches);
-        if (isset($matches[0]) && $matches[0] === '.') {
-            return true;
-        }
-
-        return false;
     }
 }
 

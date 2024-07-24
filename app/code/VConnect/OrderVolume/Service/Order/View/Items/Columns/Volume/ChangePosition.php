@@ -3,21 +3,29 @@ declare(strict_types=1);
 
 namespace VConnect\OrderVolume\Service\Order\View\Items\Columns\Volume;
 
-use VConnect\OrderVolume\Model\Order\Item\Config;
+use VConnect\OrderVolume\Model\ResourceModel\Order\Item\Volume\GetOrderItemVolume as OrderItemConfig;
 
 class ChangePosition
 {
     private array $columnsCurrentPositionNumber = [];
 
-    public function execute(array $columns, string $afterColumnName): array
+    public function __construct(private string $afterColumnName = '')
+    {
+    }
+
+    public function execute(array $columns): array
     {
         $this->defineColumnsCurrentPositionNumbers($columns);
-        $itemVolumeColumnCurrentPosition = $this->getColumnCurrentPositionNumber(Config::ITEM_VOLUME_COLUMN);
-        $beforeItemVolumeColumnsNumber = $this->getColumnCurrentPositionNumber($afterColumnName);
-        $beforeItemVolumeColumns = $this->arraySplice($columns, 0, $beforeItemVolumeColumnsNumber);
-        $itemVolumeColumn = $this->arraySplice($columns, $itemVolumeColumnCurrentPosition - 1, 1);
+        $itemVolumeColumnCurrentPosition = $this->getColumnCurrentPositionNumber(OrderItemConfig::ITEM_VOLUME);
+        $beforeItemVolumeColumnsNumber = $this->getColumnCurrentPositionNumber($this->afterColumnName);
+        if ($itemVolumeColumnCurrentPosition > 0 && $beforeItemVolumeColumnsNumber >0) {
+            $itemVolumeColumn = array_splice($columns, $itemVolumeColumnCurrentPosition - 1, 1);
+            $beforeItemVolumeColumns = array_splice($columns, 0, $beforeItemVolumeColumnsNumber);
 
-        return array_merge($beforeItemVolumeColumns,$itemVolumeColumn,$columns);
+            return array_merge($beforeItemVolumeColumns,$itemVolumeColumn,$columns);
+        }
+
+        return $columns;
     }
 
     private function defineColumnsCurrentPositionNumbers(array $columns): void
@@ -34,16 +42,6 @@ class ChangePosition
      */
     private function getColumnCurrentPositionNumber(string $columnName): int
     {
-        $columnPositionNumber = 0;
-        if (array_key_exists($columnName, $this->columnsCurrentPositionNumber)) {
-            $columnPositionNumber = $this->columnsCurrentPositionNumber[$columnName];
-        }
-
-        return $columnPositionNumber;
-    }
-
-    private function arraySplice(array $array, int $offset, int $length): array
-    {
-        return array_splice($array, $offset, $length);
+        return $this->columnsCurrentPositionNumber[$columnName] ?? -1;
     }
 }

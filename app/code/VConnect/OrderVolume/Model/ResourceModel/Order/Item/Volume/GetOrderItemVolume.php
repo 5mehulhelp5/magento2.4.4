@@ -5,10 +5,11 @@ namespace VConnect\OrderVolume\Model\ResourceModel\Order\Item\Volume;
 
 use Magento\Framework\App\ResourceConnection;
 use Magento\Sales\Api\Data\OrderItemInterface;
-use VConnect\OrderVolume\Model\Order\Item\Config;
 
 class GetOrderItemVolume
 {
+    public const ITEM_VOLUME = 'item_volume';
+
     public function __construct(private ResourceConnection $resourceConnection)
     {}
 
@@ -21,11 +22,11 @@ class GetOrderItemVolume
         $connection = $this->resourceConnection->getConnection();
         $orderItemId = (int)$orderItem->getItemId();
         $select = $connection->select()
-            ->from(Config::SALES_ORDER_ITEM_TABLE)
-            ->columns(Config::ITEM_VOLUME_COLUMN)
-            ->where(Config::ITEM_ID_COLUMN . ' in (?)', $orderItemId);
+            ->from('sales_order_item')
+            ->columns(self::ITEM_VOLUME)
+            ->where(OrderItemInterface::ITEM_ID . ' in (?)', $orderItemId);
         $data = $connection->fetchAssoc($select);
 
-        return isset($data[$orderItemId]) ? (float)$data[$orderItemId][Config::ITEM_VOLUME_COLUMN] : null;
+        return isset($data[$orderItemId]) ? (float)$data[$orderItemId][self::ITEM_VOLUME] : null;
     }
 }
