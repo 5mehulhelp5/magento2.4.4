@@ -18,14 +18,15 @@ class ChangePosition
         $this->defineColumnsCurrentPositionNumbers($columns);
         $itemVolumeColumnCurrentPosition = $this->getColumnCurrentPositionNumber(OrderItemConfig::ITEM_VOLUME);
         $beforeItemVolumeColumnsNumber = $this->getColumnCurrentPositionNumber($this->afterColumnName);
-        if ($itemVolumeColumnCurrentPosition > 0 && $beforeItemVolumeColumnsNumber >0) {
-            $itemVolumeColumn = array_splice($columns, $itemVolumeColumnCurrentPosition - 1, 1);
-            $beforeItemVolumeColumns = array_splice($columns, 0, $beforeItemVolumeColumnsNumber);
+        if (!$itemVolumeColumnCurrentPosition || !$beforeItemVolumeColumnsNumber) {
 
-            return array_merge($beforeItemVolumeColumns,$itemVolumeColumn,$columns);
+            return $columns;
         }
 
-        return $columns;
+        $itemVolumeColumn = array_splice($columns, $itemVolumeColumnCurrentPosition - 1, 1);
+        $beforeItemVolumeColumns = array_splice($columns, 0, $beforeItemVolumeColumnsNumber);
+
+        return array_merge($beforeItemVolumeColumns,$itemVolumeColumn,$columns);
     }
 
     private function defineColumnsCurrentPositionNumbers(array $columns): void
@@ -42,6 +43,6 @@ class ChangePosition
      */
     private function getColumnCurrentPositionNumber(string $columnName): int
     {
-        return $this->columnsCurrentPositionNumber[$columnName] ?? -1;
+        return $this->columnsCurrentPositionNumber[$columnName] ?? 0;
     }
 }
