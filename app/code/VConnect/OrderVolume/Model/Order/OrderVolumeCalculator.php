@@ -10,7 +10,7 @@ class OrderVolumeCalculator
     public function calculate(array $orderItemsVolumeData): void
     {
         foreach ($orderItemsVolumeData as $orderItemVolumeData) {
-            if (!is_null($orderItemVolumeData)) {
+            if (null !== $orderItemVolumeData) {
                 $this->orderTotalVolume += $orderItemVolumeData;
             }
         }

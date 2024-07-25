@@ -19,7 +19,6 @@ class ChangePosition
         $itemVolumeColumnCurrentPosition = $this->getColumnCurrentPositionNumber(OrderItemConfig::ITEM_VOLUME);
         $beforeItemVolumeColumnsNumber = $this->getColumnCurrentPositionNumber($this->afterColumnName);
         if (!$itemVolumeColumnCurrentPosition || !$beforeItemVolumeColumnsNumber) {
-
             return $columns;
         }
 

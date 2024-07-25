@@ -23,9 +23,9 @@ class OrderItemRepositoryPlugin
      */
     public function afterGet(OrderItemRepositoryInterface $subject, OrderItemInterface $orderItem): OrderItemInterface
     {
-        $orderItemInArray = $this->setOrderItemVolumeExtensionAttribute([$orderItem]);
+        $this->setOrderItemVolumeExtensionAttribute([$orderItem]);
 
-        return $orderItemInArray[0];
+        return $orderItem;
     }
 
     /**
@@ -44,9 +44,8 @@ class OrderItemRepositoryPlugin
 
     /**
      * @param OrderItemInterface[] $orderItems
-     * @return OrderItemInterface[]
      */
-    private function setOrderItemVolumeExtensionAttribute(array $orderItems): array
+    private function setOrderItemVolumeExtensionAttribute(array $orderItems): void
     {
         foreach ($orderItems as  $orderItem) {
             /** @var \Magento\Sales\Api\Data\OrderItemExtensionInterface|null $extensionAttributes */
@@ -61,7 +60,5 @@ class OrderItemRepositoryPlugin
             $extensionAttributes->setItemVolume($orderItemVolume);
             $orderItem->setExtensionAttributes($extensionAttributes);
         }
-
-        return $orderItems;
     }
 }

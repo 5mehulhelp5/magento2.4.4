@@ -24,9 +24,9 @@ class OrderRepositoryPlugin
      */
     public function afterGet(OrderRepositoryInterface $subject, OrderInterface $order): OrderInterface
     {
-        $orderInArray = $this->setOrderVolumeExtensionAttribute([$order]);
+        $this->setOrderVolumeExtensionAttribute([$order]);
 
-        return $orderInArray[0];
+        return $order;
     }
 
     /**
@@ -45,9 +45,8 @@ class OrderRepositoryPlugin
 
     /**
      * @param OrderInterface[] $orders
-     * @return OrderInterface[]
      */
-    private function setOrderVolumeExtensionAttribute(array $orders): array
+    private function setOrderVolumeExtensionAttribute(array $orders): void
     {
         foreach ($orders as  $order) {
             /** @var OrderExtensionInterface|null $extensionAttributes */
@@ -62,7 +61,5 @@ class OrderRepositoryPlugin
             $extensionAttributes->setOrderVolume($orderVolume);
             $order->setExtensionAttributes($extensionAttributes);
         }
-
-        return $orders;
     }
 }
