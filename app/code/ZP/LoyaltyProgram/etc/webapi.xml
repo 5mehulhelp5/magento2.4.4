@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    <route url="/V1/loyalty_program/programs" method="GET">
+        <service class="ZP\LoyaltyProgram\Api\LoyaltyProgramRepositoryInterface" method="getList"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route url="/V1/loyalty_program/program/:programId" method="GET">
+        <service class="ZP\LoyaltyProgram\Api\LoyaltyProgramRepositoryInterface" method="get"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route url="/V1/loyalty_program/program" method="POST">
+        <service class="ZP\LoyaltyProgram\Api\LoyaltyProgramRepositoryInterface" method="save"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route url="/V1/loyalty_program/program" method="PUT">
+        <service class="ZP\LoyaltyProgram\Api\LoyaltyProgramRepositoryInterface" method="save"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route url="/V1/loyalty_program/program/:programId" method="DELETE">
+        <service class="ZP\LoyaltyProgram\Api\LoyaltyProgramRepositoryInterface" method="deleteById"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+</routes>

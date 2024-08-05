@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="zp_loyalty_program" resource="default" engine="innodb" comment="ZP Loyalty Program Table">
+        <column xsi:type="int" name="program_id" unsigned="false" nullable="false" identity="true"
+                comment="Program ID"/>
+        <column xsi:type="varchar" name="program_name" length="255" nullable="false" comment="Program Name"/>
+        <column xsi:type="boolean" name="is_active" nullable="false" default="false" comment="Is Program Active"/>
+        <column xsi:type="text" name="description" nullable="false" comment="Program Description"/>
+        <column xsi:type="text" name="conditions_serialized" nullable="false" comment="Program Conditions"/>
+        <column xsi:type="int" name="previous_program" nullable="true" comment="Previous Program"/>
+        <column xsi:type="int" name="next_program" nullable="true" comment="Next Program"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="program_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="UNIQUE_PROGRAM_NAME">
+            <column name="program_name"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="UNIQUE_PREVIOUS_PROGRAM">
+            <column name="previous_program"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="UNIQUE_NEXT_PROGRAM">
+            <column name="next_program"/>
+        </constraint>
+        <constraint xsi:type="foreign"
+                    referenceId="ZP_LOYALTY_PROGRAM_TABLE_PREVIOUS_PROGRAM_COLUMN_ZP_LOYALTY_PROGRAM_TABLE_PROGRAM_ID_COLUMN"
+                    table="zp_loyalty_program" column="previous_program" referenceTable="zp_loyalty_program"
+                    referenceColumn="program_id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign"
+                    referenceId="ZP_LOYALTY_PROGRAM_TABLE_NEXT_PROGRAM_COLUMN_ZP_LOYALTY_PROGRAM_TABLE_PROGRAM_ID_COLUMN"
+                    table="zp_loyalty_program" column="next_program" referenceTable="zp_loyalty_program"
+                    referenceColumn="program_id" onDelete="CASCADE"/>
+    </table>
+    <table name="zp_loyalty_program_customer" resource="default" engine="innodb" comment="Zp Loyalty Program Customer Table">
+        <column xsi:type="int" name="customer_id" unsigned="true" nullable="false" identity="false"
+                comment="Customer ID"/>
+        <column xsi:type="int" name="program_id" unsigned="false" nullable="false" identity="false"
+                comment="Program ID"/>
+        <column xsi:type="varchar" name="customer_email" nullable="true" length="255"
+                comment="Customer Email"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="customer_id"/>
+        </constraint>
+        <constraint xsi:type="foreign"
+                    referenceId="ZP_LOYALTY_PROGRAM_CUSTOMER_TABLE_CUSTOMER_ID_COLUMN_CUSTOMER_ENTITY_TABLE_ENTITY_ID_COLUMN"
+                    table="zp_loyalty_program_customer" column="customer_id" referenceTable="customer_entity"
+                    referenceColumn="entity_id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign"
+                    referenceId="ZP_LOYALTY_PROGRAM_CUSTOMER_TABLE_PROGRAM_ID_COLUMN_ZP_LOYALTY_PROGRAM_TABLE_PROGRAM_ID_COLUMN"
+                    table="zp_loyalty_program_customer" column="program_id" referenceTable="zp_loyalty_program"
+                    referenceColumn="program_id" onDelete="CASCADE"/>
+        <index referenceId="ZP_LOYALTY_PROGRAM_CUSTOMER_PROGRAM_ID" indexType="btree">
+            <column name="program_id"/>
+        </index>
+    </table>
+</schema>
