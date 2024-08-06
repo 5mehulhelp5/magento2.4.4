@@ -26,16 +26,14 @@ class AddBasicPrograms implements DataPatchInterface
             LoyaltyProgramInterface::MAIN_TABLE,
             [
                 LoyaltyProgramInterface::PROGRAM_ID => self::PROGRAM_MIN,
-                LoyaltyProgramInterface::PROGRAM_NAME => 'Program Minimum',
-                LoyaltyProgramInterface::DESCRIPTION => 'Some Description for Program Minimum'
+                LoyaltyProgramInterface::PROGRAM_NAME => 'Program Minimum'
             ]
         );
         $connection->insert(
             LoyaltyProgramInterface::MAIN_TABLE,
             [
                 LoyaltyProgramInterface::PROGRAM_ID => self::PROGRAM_MAX,
-                LoyaltyProgramInterface::PROGRAM_NAME => 'Program Maximum',
-                LoyaltyProgramInterface::DESCRIPTION => 'Some Description for Program Maximum'
+                LoyaltyProgramInterface::PROGRAM_NAME => 'Program Maximum'
             ]
         );
 
