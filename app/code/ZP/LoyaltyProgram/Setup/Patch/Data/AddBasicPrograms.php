@@ -4,19 +4,16 @@ namespace ZP\LoyaltyProgram\Setup\Patch\Data;
 
 use Magento\Framework\Setup\Patch\DataPatchInterface;
 use ZP\LoyaltyProgram\Api\Data\LoyaltyProgramInterface;
-use ZP\LoyaltyProgram\Api\Data\LoyaltyProgramInterfaceFactory;
-use ZP\LoyaltyProgram\Model\ResourceModel\LoyaltyProgram as LoyaltyProgramResource;
 use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\App\ResourceConnection;
 
 class AddBasicPrograms implements DataPatchInterface
 {
     public const PROGRAM_MIN = 1;
     public const PROGRAM_MAX = 2;
 
-    public function __construct(
-        private LoyaltyProgramInterfaceFactory $loyaltyProgramFactory,
-        private LoyaltyProgramResource $loyaltyProgramResource
-    ) {}
+    public function __construct(private ResourceConnection $resourceConnection)
+    {}
 
     /**
      * @return DataPatchInterface
@@ -24,17 +21,23 @@ class AddBasicPrograms implements DataPatchInterface
      */
     public function apply(): DataPatchInterface
     {
-        /** @var LoyaltyProgramInterface $programMinimum */
-        $programMinimum = $this->loyaltyProgramFactory->create();
-        $programMinimum->setProgramName('Program Minimum')
-            ->setDescription('Some Description for Program Minimum');
-        $this->loyaltyProgramResource->save($programMinimum);
-
-        /** @var LoyaltyProgramInterface $programMaximum */
-        $programMaximum = $this->loyaltyProgramFactory->create();
-        $programMaximum->setProgramName('Program Maximum')
-            ->setDescription('Some Description for Program Maximum');
-        $this->loyaltyProgramResource->save($programMaximum);
+        $connection = $this->resourceConnection->getConnection();
+        $connection->insert(
+            LoyaltyProgramInterface::MAIN_TABLE,
+            [
+                LoyaltyProgramInterface::PROGRAM_ID => self::PROGRAM_MIN,
+                LoyaltyProgramInterface::PROGRAM_NAME => 'Program Minimum',
+                LoyaltyProgramInterface::DESCRIPTION => 'Some Description for Program Minimum'
+            ]
+        );
+        $connection->insert(
+            LoyaltyProgramInterface::MAIN_TABLE,
+            [
+                LoyaltyProgramInterface::PROGRAM_ID => self::PROGRAM_MAX,
+                LoyaltyProgramInterface::PROGRAM_NAME => 'Program Maximum',
+                LoyaltyProgramInterface::DESCRIPTION => 'Some Description for Program Maximum'
+            ]
+        );
 
         return $this;
     }
