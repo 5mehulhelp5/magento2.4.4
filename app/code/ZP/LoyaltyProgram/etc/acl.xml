@@ -1,0 +1,12 @@
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Acl/etc/acl.xsd">
+    <acl>
+        <resources>
+            <resource id="Magento_Backend::admin">
+                <resource id="ZP_LoyaltyProgram::config" title="Loyalty Program Configuration" translate="title" sortOrder="10"/>
+                <resource id="ZP_LoyaltyProgram::program" title="Programs" translate="title" sortOrder="20">
+                    <resource id="ZP_LoyaltyProgram::manage" title="Manage Programs" translate="title" sortOrder="10" />
+                </resource>
+            </resource>
+        </resources>
+    </acl>
+</config>
