@@ -7,7 +7,7 @@
         <column xsi:type="varchar" name="program_name" length="255" nullable="false" comment="Program Name"/>
         <column xsi:type="boolean" name="is_active" nullable="false" default="false" comment="Is Program Active"/>
         <column xsi:type="text" name="description" nullable="false" comment="Program Description"/>
-        <column xsi:type="text" name="conditions_serialized" nullable="false" comment="Program Conditions"/>
+        <column xsi:type="text" name="conditions_serialized" nullable="true" comment="Program Conditions"/>
         <column xsi:type="int" name="previous_program" nullable="true" comment="Previous Program"/>
         <column xsi:type="int" name="next_program" nullable="true" comment="Next Program"/>
         <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP"

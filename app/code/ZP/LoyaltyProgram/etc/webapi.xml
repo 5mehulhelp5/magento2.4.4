@@ -4,31 +4,31 @@
     <route url="/V1/loyalty_program/programs" method="GET">
         <service class="ZP\LoyaltyProgram\Api\LoyaltyProgramRepositoryInterface" method="getList"/>
         <resources>
-            <resource ref="anonymous"/>
+            <resource ref="ZP_LoyaltyProgram::manage"/>
         </resources>
     </route>
     <route url="/V1/loyalty_program/program/:programId" method="GET">
         <service class="ZP\LoyaltyProgram\Api\LoyaltyProgramRepositoryInterface" method="get"/>
         <resources>
-            <resource ref="anonymous"/>
+            <resource ref="ZP_LoyaltyProgram::manage"/>
         </resources>
     </route>
     <route url="/V1/loyalty_program/program" method="POST">
         <service class="ZP\LoyaltyProgram\Api\LoyaltyProgramRepositoryInterface" method="save"/>
         <resources>
-            <resource ref="anonymous"/>
+            <resource ref="ZP_LoyaltyProgram::manage"/>
         </resources>
     </route>
     <route url="/V1/loyalty_program/program" method="PUT">
         <service class="ZP\LoyaltyProgram\Api\LoyaltyProgramRepositoryInterface" method="save"/>
         <resources>
-            <resource ref="anonymous"/>
+            <resource ref="ZP_LoyaltyProgram::manage"/>
         </resources>
     </route>
     <route url="/V1/loyalty_program/program/:programId" method="DELETE">
         <service class="ZP\LoyaltyProgram\Api\LoyaltyProgramRepositoryInterface" method="deleteById"/>
         <resources>
-            <resource ref="anonymous"/>
+            <resource ref="ZP_LoyaltyProgram::manage"/>
         </resources>
     </route>
 </routes>
