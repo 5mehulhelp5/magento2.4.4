@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="ZP\LoyaltyProgram\Ui\DataProvider\LoyaltyProgram\ListingDataProvider">
+        <arguments>
+            <argument name="additionalFilterPool" xsi:type="array">
+                <item name="fulltext" xsi:type="object">ZP\LoyaltyProgram\Ui\Component\LoyaltyProgram\FulltextFilter</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

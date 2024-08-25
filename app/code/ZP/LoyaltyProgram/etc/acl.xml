@@ -4,7 +4,10 @@
             <resource id="Magento_Backend::admin">
                 <resource id="ZP_LoyaltyProgram::config" title="Loyalty Program Configuration" translate="title" sortOrder="10"/>
                 <resource id="ZP_LoyaltyProgram::program" title="Programs" translate="title" sortOrder="20">
-                    <resource id="ZP_LoyaltyProgram::manage" title="Manage Programs" translate="title" sortOrder="10" />
+                    <resource id="ZP_LoyaltyProgram::webapi" title="Manage Programs" translate="title" sortOrder="10" />
+                </resource>
+                <resource id="Magento_Backend::marketing">
+                    <resource id="ZP_LoyaltyProgram::manage" title="Loyalty Program" translate="title" sortOrder="60" />
                 </resource>
             </resource>
         </resources>
