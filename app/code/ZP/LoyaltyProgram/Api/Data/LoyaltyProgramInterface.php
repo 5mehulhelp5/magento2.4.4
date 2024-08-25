@@ -6,7 +6,7 @@ namespace ZP\LoyaltyProgram\Api\Data;
 interface LoyaltyProgramInterface
 {
     public const MAIN_TABLE = 'zp_loyalty_program';
-    public const PROGRAM_ID = 'entity_id';
+    public const PROGRAM_ID = 'program_id';
     public const PROGRAM_NAME = 'program_name';
     public const IS_ACTIVE = 'is_active';
     public const DESCRIPTION = 'description';

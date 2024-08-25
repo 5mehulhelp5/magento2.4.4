@@ -2,7 +2,7 @@
 <schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
     <table name="zp_loyalty_program" resource="default" engine="innodb" comment="ZP Loyalty Program Table">
-        <column xsi:type="int" name="entity_id" unsigned="false" nullable="false" identity="true"
+        <column xsi:type="int" name="program_id" unsigned="false" nullable="false" identity="true"
                 comment="Program ID"/>
         <column xsi:type="varchar" name="program_name" length="255" nullable="false" comment="Program Name"/>
         <column xsi:type="boolean" name="is_active" nullable="false" default="false" comment="Is Program Active"/>
@@ -18,7 +18,7 @@
         <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP"
                 comment="Updated At"/>
         <constraint xsi:type="primary" referenceId="PRIMARY">
-            <column name="entity_id"/>
+            <column name="program_id"/>
         </constraint>
         <constraint xsi:type="unique" referenceId="UNIQUE_PROGRAM_NAME">
             <column name="program_name"/>
@@ -30,13 +30,13 @@
             <column name="next_program"/>
         </constraint>
         <constraint xsi:type="foreign"
-                    referenceId="ZP_LOYALTY_PROGRAM_TABLE_PREVIOUS_PROGRAM_COLUMN_ZP_LOYALTY_PROGRAM_TABLE_ENTITY_ID_COLUMN"
+                    referenceId="ZP_LOYALTY_PROGRAM_TABLE_PREVIOUS_PROGRAM_COLUMN_ZP_LOYALTY_PROGRAM_TABLE_PROGRAM_ID_COLUMN"
                     table="zp_loyalty_program" column="previous_program" referenceTable="zp_loyalty_program"
-                    referenceColumn="entity_id" onDelete="CASCADE"/>
+                    referenceColumn="program_id" onDelete="CASCADE"/>
         <constraint xsi:type="foreign"
-                    referenceId="ZP_LOYALTY_PROGRAM_TABLE_NEXT_PROGRAM_COLUMN_ZP_LOYALTY_PROGRAM_TABLE_ENTITY_ID_COLUMN"
+                    referenceId="ZP_LOYALTY_PROGRAM_TABLE_NEXT_PROGRAM_COLUMN_ZP_LOYALTY_PROGRAM_TABLE_PROGRAM_ID_COLUMN"
                     table="zp_loyalty_program" column="next_program" referenceTable="zp_loyalty_program"
-                    referenceColumn="entity_id" onDelete="CASCADE"/>
+                    referenceColumn="program_id" onDelete="CASCADE"/>
         <constraint xsi:type="foreign"
                     referenceId="ZP_LOYALTY_PROGRAM_TABLE_WEBSITE_ID_COLUMN_STORE_WEBSITE_TABLE_WEBSITE_ID_COLUMN"
                     table="zp_loyalty_program" column="website_id" referenceTable="store_website"
@@ -57,9 +57,9 @@
                     table="zp_loyalty_program_customer" column="customer_id" referenceTable="customer_entity"
                     referenceColumn="entity_id" onDelete="CASCADE"/>
         <constraint xsi:type="foreign"
-                    referenceId="ZP_LOYALTY_PROGRAM_CUSTOMER_TABLE_PROGRAM_ID_COLUMN_ZP_LOYALTY_PROGRAM_TABLE_ENTITY_ID_COLUMN"
+                    referenceId="ZP_LOYALTY_PROGRAM_CUSTOMER_TABLE_PROGRAM_ID_COLUMN_ZP_LOYALTY_PROGRAM_TABLE_PROGRAM_ID_COLUMN"
                     table="zp_loyalty_program_customer" column="program_id" referenceTable="zp_loyalty_program"
-                    referenceColumn="entity_id" onDelete="CASCADE"/>
+                    referenceColumn="program_id" onDelete="CASCADE"/>
         <index referenceId="ZP_LOYALTY_PROGRAM_CUSTOMER_PROGRAM_ID" indexType="btree">
             <column name="program_id"/>
         </index>

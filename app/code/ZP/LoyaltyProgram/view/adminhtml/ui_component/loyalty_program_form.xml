@@ -34,8 +34,8 @@
         </settings>
         <dataProvider class="ZP\LoyaltyProgram\Model\LoyaltyProgram\DataProvider" name="loyalty_program_form_data_source">
             <settings>
-                <requestFieldName>entity_id</requestFieldName>
-                <primaryFieldName>entity_id</primaryFieldName>
+                <requestFieldName>program_id</requestFieldName>
+                <primaryFieldName>program_id</primaryFieldName>
             </settings>
         </dataProvider>
     </dataSource>

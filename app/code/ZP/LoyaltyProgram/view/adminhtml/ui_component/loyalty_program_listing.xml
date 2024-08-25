@@ -21,7 +21,7 @@
     <dataSource name="loyalty_program_listing_data_source" component="Magento_Ui/js/grid/provider">
         <settings>
             <storageConfig>
-                <param name="indexField" xsi:type="string">entity_id</param>
+                <param name="indexField" xsi:type="string">program_id</param>
             </storageConfig>
             <updateUrl path="mui/index/render"/>
         </settings>
@@ -29,7 +29,7 @@
         <dataProvider class="ZP\LoyaltyProgram\Ui\DataProvider\LoyaltyProgram\ListingDataProvider" name="loyalty_program_listing_data_source">
             <settings>
                 <requestFieldName>id</requestFieldName>
-                <primaryFieldName>entity_id</primaryFieldName>
+                <primaryFieldName>program_id</primaryFieldName>
             </settings>
         </dataProvider>
     </dataSource>
@@ -109,12 +109,12 @@
         </settings>
         <selectionsColumn name="ids">
             <settings>
-                <indexField>entity_id</indexField>
+                <indexField>program_id</indexField>
                 <resizeEnabled>false</resizeEnabled>
                 <resizeDefaultWidth>55</resizeDefaultWidth>
             </settings>
         </selectionsColumn>
-        <column name="entity_id" sortOrder="10">
+        <column name="program_id" sortOrder="10">
             <settings>
                 <filter>textRange</filter>
                 <label translate="true">Program ID</label>
@@ -158,7 +158,7 @@
         </column>
         <actionsColumn name="actions" class="ZP\LoyaltyProgram\Ui\Component\LoyaltyProgram\Listing\Column\ProgramActions" sortOrder="100">
             <settings>
-                <indexField>entity_id</indexField>
+                <indexField>program_id</indexField>
                 <resizeEnabled>false</resizeEnabled>
                 <resizeDefaultWidth>107</resizeDefaultWidth>
             </settings>

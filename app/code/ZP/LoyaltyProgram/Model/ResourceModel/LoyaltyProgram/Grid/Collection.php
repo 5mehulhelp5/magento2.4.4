@@ -149,7 +149,7 @@ class Collection extends LoyaltyProgramCollection implements SearchResultInterfa
     protected function _beforeLoad(): self
     {
         $this->addFieldToFilter(
-            LoyaltyProgram::PROGRAM_ID,
+            'main_table.' . LoyaltyProgram::PROGRAM_ID,
             [
                 'nin' => [BasicProgramsConfig::PROGRAM_MIN, BasicProgramsConfig::PROGRAM_MAX]
             ]
@@ -158,10 +158,10 @@ class Collection extends LoyaltyProgramCollection implements SearchResultInterfa
 
         $this->getSelect()->joinLeft(
             'zp_loyalty_program_customer',
-            'main_table.entity_id= ' . 'zp_loyalty_program_customer.program_id',
+            'main_table.program_id= ' . 'zp_loyalty_program_customer.program_id',
             ['number_of_customers_in_program' => 'COUNT(zp_loyalty_program_customer.customer_id)']
         );
-        $this->getSelect()->group('main_table.entity_id');
+        $this->getSelect()->group('main_table.program_id');
         if ($this->customersInProgramFilterStatus) {
             if (count($this->customersInProgramFilter) === 2) {
                 $havingSql = 'BETWEEN ' . array_shift($this->customersInProgramFilter) .
