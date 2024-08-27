@@ -132,9 +132,9 @@ interface LoyaltyProgramInterface
     public function setWebsiteId(?int $websiteId): self;
 
     /**
-     * @return array|null
+     * @return array
      */
-    public function getCustomerGroupIds(): ?array;
+    public function getCustomerGroupIds(): array;
 
     /**
      * @param $customerGroupIds mixed

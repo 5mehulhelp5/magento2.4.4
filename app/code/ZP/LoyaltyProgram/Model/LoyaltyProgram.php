@@ -197,15 +197,15 @@ class LoyaltyProgram extends AbstractModel implements LoyaltyProgramInterface
     }
 
     /**
-     * @return array|null
+     * @return array
      */
-    public function getCustomerGroupIds(): ?array
+    public function getCustomerGroupIds(): array
     {
-        $groupIds = $this->getData(self::CUSTOMER_GROUP_IDS);
-        if ($groupIds !== null) {
-            $groupIds = explode(',', $groupIds);
+        $groupIds = (array)$this->getData(self::CUSTOMER_GROUP_IDS);
+        if ($groupIds) {
+            $groupIds = explode(',', array_shift($groupIds));
             foreach ($groupIds as $key => $groupId) {
-                $groupIds[$key] = (int)$groupId;
+                $groupIds[$key] = $groupId;
             }
         }
 

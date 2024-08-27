@@ -57,14 +57,10 @@ class DataProvider extends ModifierPoolDataProvider
         }
 
         $customerGroupIds = $item->getCustomerGroupIds();
-        if ($customerGroupIds === null) {
-            $item->setCustomerGroupIds('');
-        } else {
-            foreach ($customerGroupIds as $key => $customerGroupId) {
-                $customerGroupIds[$key] = (string)$customerGroupId;
-            }
-            $item->setData(LoyaltyProgram::CUSTOMER_GROUP_IDS, $customerGroupIds);
+        foreach ($customerGroupIds as $key => $customerGroupId) {
+            $customerGroupIds[$key] = $customerGroupId;
         }
+        $item->setData(LoyaltyProgram::CUSTOMER_GROUP_IDS, $customerGroupIds);
 
         $this->loadedData[$item->getId()] = $item->getData();
 

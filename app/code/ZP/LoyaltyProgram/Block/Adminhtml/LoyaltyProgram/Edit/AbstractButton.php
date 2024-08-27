@@ -12,16 +12,12 @@ use Magento\Framework\App\RequestInterface;
 abstract class AbstractButton implements ButtonProviderInterface
 {
     protected ?int $programId = null;
-    protected string $requestAction;
     protected RequestInterface $request;
-
-    public const BUTTON_DATA = [];
 
     public function __construct(protected Context $context)
     {
         $this->request = $this->context->getRequest();
         $this->setProgramIdPropertyValue();
-        $this->setActionPropertyValue();
     }
 
 
@@ -32,7 +28,7 @@ abstract class AbstractButton implements ButtonProviderInterface
 
     protected function isEditAction(): bool
     {
-        return $this->requestAction === 'edit';
+        return $this->request->getActionName() === 'edit';
     }
 
     protected function validateProgramId(): bool
@@ -48,17 +44,11 @@ abstract class AbstractButton implements ButtonProviderInterface
         }
     }
 
-    protected function setActionPropertyValue(): void
-    {
-        $this->requestAction = $this->request->getActionName();
-    }
-
     public function getButtonData(): array
     {
+        $buttonData =[];
         if ($this->validateButtonWorkConditions()) {
             $buttonData = $this->getData();
-        } else {
-            $buttonData =[];
         }
 
         return $buttonData;
