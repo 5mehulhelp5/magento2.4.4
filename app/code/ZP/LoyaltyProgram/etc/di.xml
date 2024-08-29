@@ -4,4 +4,19 @@
     <preference for="ZP\LoyaltyProgram\Api\Data\LoyaltyProgramInterface" type="ZP\LoyaltyProgram\Model\LoyaltyProgram"/>
     <preference for="ZP\LoyaltyProgram\Api\LoyaltyProgramRepositoryInterface" type="ZP\LoyaltyProgram\Model\LoyaltyProgramRepository"/>
     <preference for="ZP\LoyaltyProgram\Api\Data\LoyaltyProgramSearchResultsInterface" type="ZP\LoyaltyProgram\Model\LoyaltyProgramSearchResults"/>
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="loyalty_program_listing_data_source" xsi:type="string">ZP\LoyaltyProgram\Model\ResourceModel\LoyaltyProgram\Grid\Collection</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="ZP\LoyaltyProgram\Model\ResourceModel\LoyaltyProgram\Grid\Collection">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">zp_loyalty_program</argument>
+            <argument name="eventPrefix" xsi:type="string">loyalty_program_grid_collection</argument>
+            <argument name="eventObject" xsi:type="string">program_grid_collection</argument>
+            <argument name="resourceModel" xsi:type="string">ZP\LoyaltyProgram\Model\ResourceModel\LoyaltyProgram</argument>
+        </arguments>
+    </type>
 </config>

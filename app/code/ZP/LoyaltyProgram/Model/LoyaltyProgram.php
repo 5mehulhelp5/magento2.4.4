@@ -9,6 +9,8 @@ use ZP\LoyaltyProgram\Model\ResourceModel\LoyaltyProgram as LoyaltyProgramResour
 
 class LoyaltyProgram extends AbstractModel implements LoyaltyProgramInterface
 {
+    public const ACTIVE = 1;
+
     /**
      * Initialize resource model
      * @return void
@@ -33,6 +35,7 @@ class LoyaltyProgram extends AbstractModel implements LoyaltyProgramInterface
     {
         return $this->setData(self::PROGRAM_ID, (int)$programId);
     }
+
 
     /**
      * @return string|null
@@ -107,14 +110,16 @@ class LoyaltyProgram extends AbstractModel implements LoyaltyProgramInterface
      */
     public function getPreviousProgram(): ?int
     {
-        return (int)$this->getData(self::PREVIOUS_PROGRAM);
+        $programId = $this->getData(self::PREVIOUS_PROGRAM);
+
+        return $programId === null ? null : (int)$programId;
     }
 
     /**
-     * @param int $previousProgram
+     * @param int|null $previousProgram
      * @return LoyaltyProgramInterface
      */
-    public function setPreviousProgram(int $previousProgram): LoyaltyProgramInterface
+    public function setPreviousProgram(?int $previousProgram): LoyaltyProgramInterface
     {
         return $this->setData(self::PREVIOUS_PROGRAM, $previousProgram);
     }
@@ -124,14 +129,16 @@ class LoyaltyProgram extends AbstractModel implements LoyaltyProgramInterface
      */
     public function getNextProgram(): ?int
     {
-        return (int)$this->getData(self::NEXT_PROGRAM);
+        $programId = $this->getData(self::NEXT_PROGRAM);
+
+        return $programId === null ? null : (int)$programId;
     }
 
     /**
-     * @param int $nextProgram
+     * @param int|null $nextProgram
      * @return LoyaltyProgramInterface
      */
-    public function setNextProgram(int $nextProgram): LoyaltyProgramInterface
+    public function setNextProgram(?int $nextProgram): LoyaltyProgramInterface
     {
         return $this->setData(self::NEXT_PROGRAM, $nextProgram);
     }
@@ -168,5 +175,72 @@ class LoyaltyProgram extends AbstractModel implements LoyaltyProgramInterface
     public function setUpdatedAt(?string $updatedAt = null): LoyaltyProgramInterface
     {
         return $this->setData(self::UPDATED_AT, $updatedAt);
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getWebsiteId(): ?int
+    {
+        $websiteId = $this->getData(self::WEBSITE_ID);
+
+        return $websiteId === null ? null : (int)$websiteId;
+    }
+
+    /**
+     * @param int|null $websiteId
+     * @return LoyaltyProgramInterface
+     */
+    public function setWebsiteId(?int $websiteId): LoyaltyProgramInterface
+    {
+        return $this->setData(self::WEBSITE_ID, $websiteId);
+    }
+
+    /**
+     * @return array
+     */
+    public function getCustomerGroupIds(): array
+    {
+        $groupIds = (array)$this->getData(self::CUSTOMER_GROUP_IDS);
+        if ($groupIds) {
+            $groupIds = explode(',', array_shift($groupIds));
+            foreach ($groupIds as $key => $groupId) {
+                $groupIds[$key] = $groupId;
+            }
+        }
+
+        return $groupIds;
+    }
+
+    /**
+     * @param mixed $customerGroupIds
+     * @return LoyaltyProgramInterface
+     */
+    public function setCustomerGroupIds(mixed $customerGroupIds): LoyaltyProgramInterface
+    {
+        if ($customerGroupIds !== null) {
+            $customerGroupIds = is_array($customerGroupIds) ? implode($customerGroupIds) : (string)$customerGroupIds;
+        }
+
+        return $this->setData(self::CUSTOMER_GROUP_IDS, $customerGroupIds);
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getOrderSubtotal(): ?int
+    {
+        $orderSubtotal = $this->getData(self::ORDER_SUBTOTAL);
+
+        return $orderSubtotal === null ? null : (int)$orderSubtotal;
+    }
+
+    /**
+     * @param int|null $orderSubtotal
+     * @return LoyaltyProgramInterface
+     */
+    public function setOrderSubtotal(?int $orderSubtotal): LoyaltyProgramInterface
+    {
+        return $this->setData(self::ORDER_SUBTOTAL, $orderSubtotal);
     }
 }

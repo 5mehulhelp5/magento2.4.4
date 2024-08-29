@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add
+            id="ZP_LoyaltyProgram::loyalty_program_elements"
+            title="Loyalty Program"
+            translate="title"
+            module="ZP_LoyaltyProgram"
+            sortOrder="50"
+            parent="Magento_Backend::marketing"
+            resource="ZP_LoyaltyProgram::manage"/>
+        <add
+            id="ZP_LoyaltyProgram::manage"
+            title="Manage Loyalty Program"
+            translate="title"
+            module="ZP_LoyaltyProgram"
+            sortOrder="0"
+            parent="ZP_LoyaltyProgram::loyalty_program_elements"
+            action="loyalty_program/program"
+            resource="ZP_LoyaltyProgram::manage"/>
+    </menu>
+</config>

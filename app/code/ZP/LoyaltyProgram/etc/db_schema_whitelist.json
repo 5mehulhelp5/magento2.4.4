@@ -1,0 +1,46 @@
+{
+    "zp_loyalty_program": {
+        "column": {
+            "program_id": true,
+            "program_name": true,
+            "is_active": true,
+            "description": true,
+            "conditions_serialized": true,
+            "previous_program": true,
+            "next_program": true,
+            "created_at": true,
+            "updated_at": true,
+            "website_id": true,
+            "customer_group_ids": true,
+            "order_subtotal": true,
+            "entity_id": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "ZP_LOYALTY_PROGRAM_PROGRAM_NAME": true,
+            "ZP_LOYALTY_PROGRAM_PREVIOUS_PROGRAM": true,
+            "ZP_LOYALTY_PROGRAM_NEXT_PROGRAM": true,
+            "FK_F0425223603AB4C13E126EE03A21479B": true,
+            "ZP_LOYALTY_PROGRAM_NEXT_PROGRAM_ZP_LOYALTY_PROGRAM_PROGRAM_ID": true,
+            "ZP_LOYALTY_PROGRAM_WEBSITE_ID_STORE_WEBSITE_WEBSITE_ID": true,
+            "ZP_LOYALTY_PROGRAM_PREVIOUS_PROGRAM_ZP_LOYALTY_PROGRAM_ENTITY_ID": true,
+            "ZP_LOYALTY_PROGRAM_NEXT_PROGRAM_ZP_LOYALTY_PROGRAM_ENTITY_ID": true
+        }
+    },
+    "zp_loyalty_program_customer": {
+        "column": {
+            "customer_id": true,
+            "program_id": true,
+            "customer_email": true
+        },
+        "index": {
+            "ZP_LOYALTY_PROGRAM_CUSTOMER_PROGRAM_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "ZP_LOYALTY_PROGRAM_CSTR_CSTR_ID_CSTR_ENTT_ENTT_ID": true,
+            "ZP_LOYALTY_PROGRAM_CSTR_PROGRAM_ID_ZP_LOYALTY_PROGRAM_PROGRAM_ID": true,
+            "ZP_LOYALTY_PROGRAM_CSTR_PROGRAM_ID_ZP_LOYALTY_PROGRAM_ENTT_ID": true
+        }
+    }
+}

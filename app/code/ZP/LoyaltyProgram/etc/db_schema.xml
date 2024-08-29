@@ -10,6 +10,9 @@
         <column xsi:type="text" name="conditions_serialized" nullable="true" comment="Program Conditions"/>
         <column xsi:type="int" name="previous_program" nullable="true" comment="Previous Program"/>
         <column xsi:type="int" name="next_program" nullable="true" comment="Next Program"/>
+        <column xsi:type="smallint" name="website_id" nullable="true" unsigned="true" comment="Website ID"/>
+        <column xsi:type="text" name="customer_group_ids" nullable="true" comment="Customer Groups"/>
+        <column xsi:type="int" name="order_subtotal" nullable="true" comment="Order Subtotal"/>
         <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP"
                 comment="Created At"/>
         <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP"
@@ -34,6 +37,10 @@
                     referenceId="ZP_LOYALTY_PROGRAM_TABLE_NEXT_PROGRAM_COLUMN_ZP_LOYALTY_PROGRAM_TABLE_PROGRAM_ID_COLUMN"
                     table="zp_loyalty_program" column="next_program" referenceTable="zp_loyalty_program"
                     referenceColumn="program_id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign"
+                    referenceId="ZP_LOYALTY_PROGRAM_TABLE_WEBSITE_ID_COLUMN_STORE_WEBSITE_TABLE_WEBSITE_ID_COLUMN"
+                    table="zp_loyalty_program" column="website_id" referenceTable="store_website"
+                    referenceColumn="website_id" onDelete="CASCADE"/>
     </table>
     <table name="zp_loyalty_program_customer" resource="default" engine="innodb" comment="Zp Loyalty Program Customer Table">
         <column xsi:type="int" name="customer_id" unsigned="true" nullable="false" identity="false"

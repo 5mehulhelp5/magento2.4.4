@@ -1,0 +1,18 @@
+<?php
+declare(strict_types=1);
+
+namespace ZP\LoyaltyProgram\Model\Source\Adminhtml\Program\Form\Fields\Field;
+
+use ZP\LoyaltyProgram\Model\LoyaltyProgram;
+
+class NextProgramOptions extends ReferenceProgramOptions
+{
+    /**
+     * @param LoyaltyProgram $program
+     * @return int|null
+     */
+    protected function getReferenceProgramId(LoyaltyProgram $program): ?int
+    {
+        return $program->getNextProgram();
+    }
+}
