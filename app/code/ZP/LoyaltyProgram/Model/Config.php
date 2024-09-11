@@ -9,9 +9,11 @@ use Magento\Store\Model\ScopeInterface;
 class Config
 {
     private const XML_PATH_ENABLED = 'loyalty_program/general/is_enabled';
+    private const XML_PATH_APPLY_SUBTOTAL_CHANGES_AFTER_INVOICE = 'loyalty_program/general/apply_subtotal_changes_after_invoice';
 
-    public function __construct(private ScopeConfigInterface $scopeConfig)
-    {}
+    public function __construct(
+        private ScopeConfigInterface $scopeConfig,
+    ) {}
 
     /**
      * @param string|int|null $storeId
@@ -26,4 +28,14 @@ class Config
         );
     }
 
+    public function isApplySubtotalChangesAfterInvoice(null|string|int $websiteId = null): bool
+    {
+        $result = $this->scopeConfig->isSetFlag(
+            self::XML_PATH_APPLY_SUBTOTAL_CHANGES_AFTER_INVOICE,
+            ScopeInterface::SCOPE_WEBSITE,
+            $websiteId
+        );
+
+        return $result;
+    }
 }

@@ -31,4 +31,13 @@
             <resource ref="ZP_LoyaltyProgram::webapi"/>
         </resources>
     </route>
+    <route url="/V1/loyalty_program/manage_customer_program/:customerId" method="GET">
+        <service class="ZP\LoyaltyProgram\Api\LoyaltyProgramManagementInterface" method="assignLoyaltyProgram"/>
+        <!-- HERE I NEED TO FIND THE WAY HOW TO GIVE TO  assignLoyaltyProgram($customerEntity);
+        according to $customerIdFromRequestString, because yesterday you told me
+         to change assignLoyaltyProgram($customerId); on assignLoyaltyProgram($customerEntity);-->
+        <resources>
+            <resource ref="ZP_LoyaltyProgram::webapi"/>
+        </resources>
+    </route>
 </routes>

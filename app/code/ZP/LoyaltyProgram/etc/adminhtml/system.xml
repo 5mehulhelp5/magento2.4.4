@@ -14,6 +14,10 @@
                     <label>Is Enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="apply_subtotal_changes_after_invoice" translate="label" type="select" sortOrder="20" showInWebsite="1" canRestore="1">
+                    <label>Apply subtotal changes after invoice</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
             </group>
         </section>
     </system>
