@@ -7,6 +7,7 @@ use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
 use ZP\LoyaltyProgram\Api\Data\LoyaltyProgramInterface;
 use ZP\LoyaltyProgram\Model\LoyaltyProgram as LoyaltyProgramModel;
 use ZP\LoyaltyProgram\Model\ResourceModel\LoyaltyProgram as LoyaltyProgramResource;
+use ZP\LoyaltyProgram\Setup\Patch\Data\AddBasicPrograms as BasicProgramsConfig;
 
 class Collection extends AbstractCollection
 {
@@ -15,5 +16,15 @@ class Collection extends AbstractCollection
     protected function _construct()
     {
         $this->_init(LoyaltyProgramModel::class, LoyaltyProgramResource::class);
+    }
+
+    /**
+     * @return array[]
+     */
+    public function getNinBasicProgramsFilter(): array
+    {
+        return [
+            'nin' => [BasicProgramsConfig::PROGRAM_MIN, BasicProgramsConfig::PROGRAM_MAX]
+        ];
     }
 }

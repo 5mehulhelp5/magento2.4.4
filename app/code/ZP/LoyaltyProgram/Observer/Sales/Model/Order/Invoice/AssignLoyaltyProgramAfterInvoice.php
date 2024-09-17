@@ -5,13 +5,11 @@ namespace ZP\LoyaltyProgram\Observer\Sales\Model\Order\Invoice;
 
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Event\Observer;
-use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use ZP\LoyaltyProgram\Api\LoyaltyProgramManagementInterface;
 use ZP\LoyaltyProgram\Model\Config as LoyaltyProgramScopeConfig;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Model\Data\Customer;
-use Magento\Sales\Model\Order\Invoice;
 
 class AssignLoyaltyProgramAfterInvoice implements ObserverInterface
 {
@@ -28,15 +26,10 @@ class AssignLoyaltyProgramAfterInvoice implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-        $storeId = (int)$this->storeManager->getStore()->getId();
         $webSiteId = (int)$this->storeManager->getWebsite()->getId();
-        $isLoyaltyProgramEnable = $this->programScopeConfig->isEnabled($storeId);
+        $isLoyaltyProgramEnable = $this->programScopeConfig->isEnabled($webSiteId);
         if ($isLoyaltyProgramEnable && $this->programScopeConfig->isApplySubtotalChangesAfterInvoice($webSiteId)) {
-            /** @var  Invoice $invoice */
-            $invoice = $observer->getEvent()->getInvoice();
-            /** @var OrderInterface $order */
-            $order = $invoice->getOrder();
-            $customerId = $order->getCustomerId();
+            $customerId = $observer->getEvent()->getOrder()->getCustomerId();
             if (!$customerId) {
                 return;
             }

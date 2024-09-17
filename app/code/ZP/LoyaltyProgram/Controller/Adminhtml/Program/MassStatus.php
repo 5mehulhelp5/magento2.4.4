@@ -11,7 +11,6 @@ use Magento\Ui\Component\MassAction\Filter;
 use ZP\LoyaltyProgram\Model\LoyaltyProgram;
 use ZP\LoyaltyProgram\Model\ResourceModel\LoyaltyProgram as LoyaltyProgramResource;
 use ZP\LoyaltyProgram\Model\ResourceModel\LoyaltyProgram\CollectionFactory;
-use Magento\Framework\Controller\Result\ForwardFactory;
 
 class MassStatus extends Action implements HttpPostActionInterface
 {
@@ -50,7 +49,17 @@ class MassStatus extends Action implements HttpPostActionInterface
                 }
             }
 
-            $this->messageManager->addSuccessMessage(__('A total of %1 program(s) have been changed status.', $programStatusesChanged));
+            if ($programStatusesChanged === 0 ) {
+                $this->messageManager->addNoticeMessage('You didn\'t change status for any program.');
+            } else {
+                $this->messageManager->addNoticeMessage(
+                    __(
+                        'A total of %1 program(s) have been changed status.' .
+                        'don\'t forget to check and update (if it is need) reference programs chain in other programs!',
+                        $programStatusesChanged
+                    )
+                );
+            }
         } catch (\Exception $exception) {
             $this->messageManager->addErrorMessage(__($exception->getMessage()));
         }

@@ -34,7 +34,10 @@ class Delete extends AbstractProgramController implements HttpPostActionInterfac
             $program = $this->programRepository->get((int)$programId);
             $programName = $program->getProgramName();
             $this->programRepository->delete($program);
-            $this->messageManager->addSuccessMessage(__('You deleted the Program : ' . $programName));
+            $this->messageManager->addNoticeMessage(
+                'You have deleted ' . "'$programName" . ' Program\', ' .
+                'don\'t forget to check and update (if it is need) reference programs chain in other programs!'
+            );
         } catch (LocalizedException $exception) {
             $this->messageManager->addErrorMessage(__($exception->getMessage()));
             return $resultRedirect->setPath('*/*/edit', ['program_id' => (int)$programId]);

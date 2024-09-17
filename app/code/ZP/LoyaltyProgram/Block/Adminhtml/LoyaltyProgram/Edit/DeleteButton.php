@@ -21,7 +21,7 @@ class DeleteButton extends AbstractButton
             'label' => __('Delete'),
             'class' => 'delete',
             'on_click' => 'deleteConfirm(\'' . __(
-                    'Are you sure you want to delete this?'
+                    'Are you sure you want to delete this Program?'
                 ) . '\', \'' . $this->getUrl('*/*/delete', ['program_id' => $this->programId]) . '\', {data: {}})',
             'sort_order' => 100,
         ];

@@ -27,7 +27,8 @@ class Save extends AbstractProgramController implements HttpPostActionInterface
         Context $context,
         private LoyaltyProgramFactory $programFactory,
         private LoyaltyProgramRepositoryInterface $programRepository
-    ) {
+    )
+    {
         parent::__construct($context);
     }
 
@@ -54,24 +55,26 @@ class Save extends AbstractProgramController implements HttpPostActionInterface
 
             $data = $this->prepareDataToSave($data);
 
-            /** @var LoyaltyProgram $program */
-            $program = $this->programFactory->create();
 
             if ($this->programId && (is_numeric($this->programId) && !is_float($this->programId))) {
                 try {
                     $program = $this->programRepository->get($this->programId);
+                    $programBeforeSave = $this->programRepository->get($this->programId);
                 } catch (LocalizedException $e) {
                     $this->messageManager->addErrorMessage(__('This Program no longer exists.'));
 
                     return $resultRedirect->setPath('*/*/');
                 }
+            } else {
+                $program = $this->programFactory->create();
+                $programBeforeSave = null;
             }
-
+            /** @var LoyaltyProgram $program */
             $program->setData($data);
 
             try {
                 $this->programRepository->save($program);
-                $this->messageManager->addSuccessMessage(__('You saved the Program.'));
+                $this->addMessages($program, $programBeforeSave);
             } catch (LocalizedException $e) {
                 $this->messageManager->addErrorMessage($e->getMessage());
                 return $resultRedirect->setPath('*/*/new');
@@ -165,5 +168,44 @@ class Save extends AbstractProgramController implements HttpPostActionInterface
         } elseif ($implode) {
             $data[$field] = implode(',', $data[$field]);
         }
+    }
+
+    private function addMessages(LoyaltyProgram $program, ?LoyaltyProgram $programBeforeSave = null): void
+    {
+        $programName = $program->getProgramName();
+        $action = 'saved';
+        if ($programBeforeSave) {
+            $action = 'updated';
+        }
+
+        $this->messageManager->addSuccessMessage(
+            __('You have ' . $action . ' the ' . $programName . ' Program!')
+        );
+
+        if ($programBeforeSave && $this->isActiveStatusUpdated($program, $programBeforeSave)) {
+            $this->messageManager->addNoticeMessage(
+                'You have updated active status in ' . "'$programName" . ' Program\', ' .
+                'don\'t forget to check and update (if it is need) reference programs chain!'
+            );
+        }
+
+        $isProgramReferencesNull = $this->isProgramReferencesNull($program);
+        if ($isProgramReferencesNull) {
+            $this->messageManager->addNoticeMessage(
+                'Next or Previous program references in ' . "'$programName" . ' Program\', ' .
+                'haven\'t been added. Check and update data of this field, and also don\'t forget to update ' .
+                'referencing data of programs that you will add as reference to ' . "'$programName" . ' Program\'!'
+            );
+        }
+    }
+
+    private function isActiveStatusUpdated(LoyaltyProgram $program, LoyaltyProgram $programBeforeSave): bool
+    {
+        return $program->getIsActive() !== $programBeforeSave->getIsActive();
+    }
+
+    private function isProgramReferencesNull(LoyaltyProgram $program): bool
+    {
+        return $program->getPreviousProgram() === null || $program->getNextProgram() === null;
     }
 }

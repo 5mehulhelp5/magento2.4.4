@@ -19,23 +19,21 @@ class Config
      * @param string|int|null $storeId
      * @return bool
      */
-    public function isEnabled(null|string|int $storeId = null): bool
+    public function isEnabled(null|string|int $websiteId = null): bool
     {
         return $this->scopeConfig->isSetFlag(
             self::XML_PATH_ENABLED,
-            ScopeInterface::SCOPE_STORE,
-            $storeId
+            ScopeInterface::SCOPE_WEBSITE,
+            $websiteId
         );
     }
 
     public function isApplySubtotalChangesAfterInvoice(null|string|int $websiteId = null): bool
     {
-        $result = $this->scopeConfig->isSetFlag(
+        return $this->scopeConfig->isSetFlag(
             self::XML_PATH_APPLY_SUBTOTAL_CHANGES_AFTER_INVOICE,
             ScopeInterface::SCOPE_WEBSITE,
             $websiteId
         );
-
-        return $result;
     }
 }

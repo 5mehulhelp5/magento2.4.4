@@ -27,9 +27,7 @@ class LoyaltyProgramsOptions implements OptionSourceInterface
         $collection = $this->loyaltyProgramCollectionFactory->create();
         $collection->addFieldToFilter(
             LoyaltyProgram::PROGRAM_ID,
-            [
-                'nin' => [BasicProgramsConfig::PROGRAM_MIN, BasicProgramsConfig::PROGRAM_MAX]
-            ]
+            $collection->getNinBasicProgramsFilter()
         );
 
         /** @var LoyaltyProgram $loyaltyProgram */

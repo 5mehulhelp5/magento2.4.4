@@ -15,6 +15,7 @@ abstract class ReferenceProgramOptions implements OptionSourceInterface
 {
     public const PLEASE_OPTION = 'please_option';
     public const REMOVE_OPTION = 'remove_option';
+    public const EMPTY_OPTION = 'empty_option';
 
     protected ?int $currentProgramId = null;
 
@@ -30,15 +31,13 @@ abstract class ReferenceProgramOptions implements OptionSourceInterface
 
     private function getProgramCollection(array $programIds = []): array
     {
-        $ninProgramIds = [
-            'nin' => [BasicProgramsConfig::PROGRAM_MIN, BasicProgramsConfig::PROGRAM_MAX]
-        ];
-        if ($programIds) {
-            $ninProgramIds['nin'] = array_merge($ninProgramIds['nin'], $programIds);
-        }
-
         /** @var Collection $collection */
         $collection = $this->collectionFactory->create();
+        $ninProgramIds = $collection->getNinBasicProgramsFilter();
+        if ($programIds) {
+            $ninKey = array_key_first($ninProgramIds);
+            $ninProgramIds[$ninKey] = array_merge($ninProgramIds[$ninKey], $programIds);
+        }
         $collection->addFieldToFilter(
             LoyaltyProgram::PROGRAM_ID,
             $ninProgramIds
@@ -47,10 +46,20 @@ abstract class ReferenceProgramOptions implements OptionSourceInterface
         return $collection->getItems();
     }
 
+    /**
+     * @return array
+     * @throws \Exception
+     */
     protected function getData(): array
     {
         $data = [];
         $programs = $this->getProgramCollection();
+        if (!$programs) {
+            $data[] = $this->getDefaultOption(self::EMPTY_OPTION);
+
+            return $data;
+        }
+
         if ($this->getProgramId() === null || $this->isBasicProgram($this->currentProgramId)) {
             $data[] = $this->getDefaultOption(self::PLEASE_OPTION);
 
@@ -84,6 +93,11 @@ abstract class ReferenceProgramOptions implements OptionSourceInterface
         return $this->currentProgramId;
     }
 
+    /**
+     * @param string $type
+     * @return array
+     * @throws \Exception
+     */
     protected function getDefaultOption(string $type): array
     {
         $label = '';
@@ -93,7 +107,12 @@ abstract class ReferenceProgramOptions implements OptionSourceInterface
                 break;
             case self::PLEASE_OPTION :
                 $label = '-- Please Select --';
-
+                break;
+            case self::EMPTY_OPTION :
+                $label = '--Nothing To Select';
+                break;
+            default:
+                throw new \Exception('Unknown option type : ' . '\'' . $type . '\'!');
         }
 
         return ['label' => __($label), 'value' => '0'];

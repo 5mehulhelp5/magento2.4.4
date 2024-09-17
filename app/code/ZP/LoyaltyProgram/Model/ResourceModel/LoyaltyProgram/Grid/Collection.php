@@ -16,8 +16,6 @@ use Magento\Framework\EntityManager\MetadataPool;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 use Magento\Framework\View\Element\UiComponent\DataProvider\Document;
 use Magento\Framework\Api\SearchCriteriaInterface;
-use ZP\LoyaltyProgram\Setup\Patch\Data\AddBasicPrograms as BasicProgramsConfig;
-
 
 class Collection extends LoyaltyProgramCollection implements SearchResultInterface
 {
@@ -150,11 +148,8 @@ class Collection extends LoyaltyProgramCollection implements SearchResultInterfa
     {
         $this->addFieldToFilter(
             'main_table.' . LoyaltyProgram::PROGRAM_ID,
-            [
-                'nin' => [BasicProgramsConfig::PROGRAM_MIN, BasicProgramsConfig::PROGRAM_MAX]
-            ]
+            $this->getNinBasicProgramsFilter()
         );
-
 
         $this->getSelect()->joinLeft(
             'zp_loyalty_program_customer',

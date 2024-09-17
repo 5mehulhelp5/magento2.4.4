@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:DataObject/etc/fieldset.xsd">
+    <scope id="global">
+        <fieldset id="customer_entity_varchar">
+            <field name="value">
+                <aspect name="to_order" targetField="external_id"/>
+            </field>
+        </fieldset>
+    </scope>
+</config>

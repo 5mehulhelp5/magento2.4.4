@@ -13,64 +13,64 @@ use ZP\LoyaltyProgram\Model\ResourceModel\LoyaltyProgram\CollectionFactory as Pr
 use ZP\LoyaltyProgram\Model\ResourceModel\LoyaltyProgram\Collection as ProgramCollection;
 use ZP\LoyaltyProgram\Setup\Patch\Data\AddBasicPrograms as BasicProgramsConfig;
 use ZP\LoyaltyProgram\Console\Command\Customer\AssignLoyaltyProgram as ConsoleCommandConfig;
+use Magento\Quote\Model\Quote;
+use ZP\LoyaltyProgram\Model\Config as ProgramScopeConfig;
 
 class LoyaltyProgramManagement implements LoyaltyProgramManagementInterface
 {
     private string $result;
+    private ?int $customerId = null;
     private AdapterInterface $connection;
     private ?LoyaltyProgram $customerProgram = null;
     private ?LoyaltyProgram $programToAssign = null;
 
     public function __construct(
         private ResourceConnection $resourceConnection,
-        private ProgramCollectionFactory $programCollectionFactory
+        private ProgramCollectionFactory $programCollectionFactory,
+        private ProgramScopeConfig $programScopeConfig
     ) {
         $this->connection = $this->resourceConnection->getConnection();
     }
 
     /**
-     * @param CustomerInterface $customer
+     * @param \Magento\Customer\Api\Data\CustomerInterface $customer
      * @return LoyaltyProgramInterface|null
      */
-    public function assignLoyaltyProgram(CustomerInterface $customer): ?LoyaltyProgramInterface
+    public function assignLoyaltyProgram(\Magento\Customer\Api\Data\CustomerInterface $customer): ?LoyaltyProgramInterface
     {
         $customerId = $customer->getId();
         if (!$customerId) {
             throw new \Exception('Customer with id ' . "$customerId" . ', does not exist!');
         } else {
-            $customerId = (int)$customerId;
-        }
-
-        $grandTotal = $this->getCustomerGrandTotalSum($customerId);
-        if (!$grandTotal) {
-            $this->result = ConsoleCommandConfig::UNABLE;
-            return null;
-        }
-
-        /** @var ProgramCollection $programCollection */
-        $programCollection = $this->programCollectionFactory->create();
-        $programCollection->addFieldToFilter(
-            LoyaltyProgram::PROGRAM_ID,
-            [
-                'nin' => [BasicProgramsConfig::PROGRAM_MIN, BasicProgramsConfig::PROGRAM_MAX]
-            ]
-        );
-        /** @var LoyaltyProgram[] $programs */
-        $programs = $programCollection->getItems();
-        if(!$this->checkCustomerAndProgramConditions($customer, $programs, $grandTotal)) {
-            return null;
+            $this->customerId = (int)$customerId;
         }
 
         $customerProgramResult = $customer->getExtensionAttributes()->getLoyaltyProgramId();
+        if (!$customerProgramResult) {
+            $select = $this->connection->select()
+                ->from('zp_loyalty_program_customer', 'program_id')
+                ->where('customer_id = ?', $this->customerId);
+            $customerProgramResult = $this->connection->fetchOne($select);
+        }
+
+        if (!$this->checkProgramConditions($customer, (int)$customer->getWebsiteId(), (int)$customer->getGroupId())) {
+            if (!$this->customerProgram && $customerProgramResult) {
+                $this->connection->delete('zp_loyalty_program_customer', 'customer_id = ' . $this->customerId);
+            }
+            $this->result = ConsoleCommandConfig::UNABLE;
+
+            return $this->getCustomerProgram();
+        }
+
         if ($customerProgramResult) {
-            $programToAssign = $this->programToAssign->getProgramId();
-            if ((int)$customerProgramResult !== $programToAssign) {
+            $programIdToAssign = (int)$this->programToAssign->getProgramId();
+            if ((int)$customerProgramResult !== $programIdToAssign) {
                 $this->executeProgramAssignment(
                     [
-                        LoyaltyProgram::PROGRAM_ID => $programToAssign,
+                        LoyaltyProgram::PROGRAM_ID => $programIdToAssign,
                         'customer_email' => $customer->getEmail()
                     ],
-                    'customer_id = ' . $customerId
+                    'customer_id = ' . $this->customerId
                 );
 
                 $this->result = ConsoleCommandConfig::UPDATED;
@@ -80,7 +80,7 @@ class LoyaltyProgramManagement implements LoyaltyProgramManagementInterface
         } else {
             $this->executeProgramAssignment(
                 [
-                    'customer_id' => $customerId,
+                    'customer_id' => $this->customerId,
                     'program_id' => $this->programToAssign->getProgramId(),
                     'customer_email' => $customer->getEmail()
                 ]
@@ -89,10 +89,9 @@ class LoyaltyProgramManagement implements LoyaltyProgramManagementInterface
             $this->result = ConsoleCommandConfig::ASSIGNED;
         }
 
-        $this->customerProgram = $this->programToAssign;
         $this->programToAssign = null;
 
-        return $this->customerProgram;
+        return $this->getCustomerProgram();
     }
 
     public function returnResult(): string
@@ -102,67 +101,97 @@ class LoyaltyProgramManagement implements LoyaltyProgramManagementInterface
 
     /**
      * @param LoyaltyProgram[] $programs
-     * @param float $customerGrandTotal
+     * @param float $entityGrandTotal
      * @throws \Exception
      */
-    private function validateProgramsToAssign(array $programs, float $customerGrandTotal): void
+    private function validateProgramsToAssign(array $programs, float $entityGrandTotal): void
     {
-        foreach ($programs as $programId => $program) {
-            $nextProgramId = $program->getNextProgram();
-            if (!$nextProgramId) {
-                $this->throwProgramException($programId, $program->getProgramName(), LoyaltyProgram::NEXT_PROGRAM);
+        if (count($programs) === 1) {
+            $program = $programs[array_key_first($programs)];
+            $programOrderSubtotal = $this->getLoyaltyProgramOrderSubtotal($program);
+            if ($entityGrandTotal >= $programOrderSubtotal) {
+                $this->programToAssign = $program;
+            }
+        } else {
+            $programIdsArray = [];
+            foreach ($programs as $programId => $program) {
+                $programIdsArray[$programId] = $programId;
             }
 
-            $programOrderSubtotal = $this->getLoyaltyProgramOrderSubtotal($program);
-            if ($nextProgramId === BasicProgramsConfig::PROGRAM_MAX) {
-                $this->programToAssign = $program;
-                break;
-            } else {
-                $nextProgramOrderSubtotal = $this->getLoyaltyProgramOrderSubtotal($programs[$nextProgramId]);
-                if ($customerGrandTotal >= $programOrderSubtotal && $customerGrandTotal < $nextProgramOrderSubtotal) {
-                    $this->programToAssign = $program;
-                    break;
-                } elseif ($customerGrandTotal < $programOrderSubtotal && $customerGrandTotal < $nextProgramOrderSubtotal) {
-                    $this->result = ConsoleCommandConfig::UNABLE;
-                    break;
+            foreach ($programs as $programId => $program) {
+                if ($programIdsArray) {
+                    unset($programIdsArray[$programId]);
+                }
+
+                $programOrderSubtotal = $this->getLoyaltyProgramOrderSubtotal($program);
+
+                $nextProgramId = $program->getNextProgram();
+                if ($nextProgramId) {
+                    if ($nextProgramId === BasicProgramsConfig::PROGRAM_MAX) {
+                        $this->programToAssign = $program;
+                        break;
+                    } elseif (array_key_exists($nextProgramId, $programs)) {
+                        $nextProgramOrderSubtotal = $this->getLoyaltyProgramOrderSubtotal($programs[$nextProgramId]);
+                    } else {
+                        if ($programIdsArray) {
+                            $nextProgramId = array_key_first($programIdsArray);
+                            $nextProgramOrderSubtotal = $this->getLoyaltyProgramOrderSubtotal($programs[$nextProgramId]);
+                        } else {
+                            $nextProgramOrderSubtotal = null;
+                        }
+                    }
+                } else {
+                    if ($programIdsArray) {
+                        $nextProgramId = array_key_first($programIdsArray);
+                        $nextProgramOrderSubtotal = $this->getLoyaltyProgramOrderSubtotal($programs[$nextProgramId]);
+                    } else {
+                        $nextProgramOrderSubtotal = null;
+                    }
+                }
+
+                if ($nextProgramOrderSubtotal === null ) {
+                    if ($entityGrandTotal >= $programOrderSubtotal) {
+                        $this->programToAssign = $program;
+                        break;
+                    }
+                } else {
+                    if ($entityGrandTotal >= $programOrderSubtotal && $entityGrandTotal < $nextProgramOrderSubtotal) {
+                        $this->programToAssign = $program;
+                        break;
+                    } elseif ($entityGrandTotal < $programOrderSubtotal && $entityGrandTotal < $nextProgramOrderSubtotal) {
+                        $this->result = ConsoleCommandConfig::UNABLE;
+                        break;
+                    }
                 }
             }
         }
     }
 
-    private function throwProgramException(int $programId, string $programName, string $field): void
-    {
-        throw new \Exception(
-            'Impossible to manage loyalty program, because program with : ' .
-            "ID - '$programId' and ProgramName - ' . '$programName', does not have '$field' data."
-        );
-    }
-
-    private function getLoyaltyProgramOrderSubtotal(LoyaltyProgram $program): float
+    private function getLoyaltyProgramOrderSubtotal(LoyaltyProgram $program): ?float
     {
         $orderSubtotal = $program->getOrderSubtotal();
-        if (!$orderSubtotal) {
-            $this->throwProgramException(
-                $program->getProgramId(),
-                $program->getProgramName(),
-                LoyaltyProgram::ORDER_SUBTOTAL
-            );
-        }
 
-        return (float)$orderSubtotal;
+        return $orderSubtotal ? (float)$orderSubtotal : null;
     }
 
-    private function getCustomerGrandTotalSum(int $customerId): ?float
+    private function getCustomerGrandTotalSum(int $websiteId): float
     {
+        $stateValue = 'new';
+        if ($this->programScopeConfig->isApplySubtotalChangesAfterInvoice($websiteId)) {
+            $stateValue = 'processing';
+        }
+
         $grandTotalSum = $this->connection->select()
             ->from(
                 'sales_order',
                 'SUM(grand_total)'
             )
-            ->where('customer_id' . ' = (?)', $customerId);
+            ->where(
+                'customer_id = ?', $this->customerId
+            )->where('state = ?', $stateValue);
         $grandTotal = $this->connection->fetchOne($grandTotalSum);
         if (!$grandTotal) {
-            $grandTotal = null;
+            $grandTotal = 0.0;
         } else {
             $grandTotal = (float)$grandTotal;
         }
@@ -170,39 +199,66 @@ class LoyaltyProgramManagement implements LoyaltyProgramManagementInterface
         return $grandTotal;
     }
 
-    private function checkCustomerAndProgramConditions(
-        CustomerInterface $customer,
-        array $programs,
-        float $customerGrandTotal
+    public function checkProgramConditions(
+        CustomerInterface|Quote $entity,
+        int $webSiteId,
+        int $customerGroupId
     ): bool {
-        $this->validateProgramsToAssign($programs, $customerGrandTotal);
+        if (!$this->programScopeConfig->isEnabled($webSiteId)) {
+            return false;
+        }
+
+        if ($entity instanceof CustomerInterface) {
+            $grandTotal = $this->getCustomerGrandTotalSum($this->customerId);
+        } else {
+            $grandTotal = (float)$entity->getGrandTotal();
+        }
+
+        /** @var ProgramCollection $programCollection */
+        $programCollection = $this->programCollectionFactory->create();
+        $programCollection->addFieldToFilter(
+            LoyaltyProgram::PROGRAM_ID,
+            $programCollection->getNinBasicProgramsFilter()
+        );
+        $programCollection->addFieldToFilter(LoyaltyProgram::IS_ACTIVE, 1);
+        $programCollection->addFieldToFilter(LoyaltyProgram::ORDER_SUBTOTAL, ['neq' => 'NULL']);
+        $programCollection->setOrder(LoyaltyProgram::ORDER_SUBTOTAL, $programCollection::SORT_ORDER_ASC);
+        /** @var LoyaltyProgram[] $programs */
+        $programs = $programCollection->getItems();
+        if (!$programs) {
+            return false;
+        }
+
+        $this->validateProgramsToAssign($programs, $grandTotal);
         if (
             !$this->programToAssign ||
-            !$this->validatedForWebsites($customer, $this->programToAssign) ||
-            !$this->validateForCustomerGroups($customer, $this->programToAssign)
+            !$this->validatedForWebsites($webSiteId, $this->programToAssign) ||
+            !$this->validateForCustomerGroups($customerGroupId, $this->programToAssign)
         ) {
+            $this->setCustomerProgram($this->programToAssign);
+
             return false;
         }
+
+        $this->setCustomerProgram($this->programToAssign);
 
         return true;
     }
 
-    private function validatedForWebsites(CustomerInterface $customer, LoyaltyProgram $loyaltyProgram): bool
+    private function validatedForWebsites(int $customerWebSiteId, LoyaltyProgram $loyaltyProgram): bool
     {
-        $customerWebSite = (int)$customer->getWebsiteId();
         $loyaltyProgramWebsite = $loyaltyProgram->getWebsiteId();
-        if (!$customerWebSite || !$loyaltyProgramWebsite || $customerWebSite !== $loyaltyProgramWebsite) {
+        if (!$customerWebSiteId || !$loyaltyProgramWebsite || $customerWebSiteId !== $loyaltyProgramWebsite) {
             return false;
         }
 
         return true;
     }
 
-    private function validateForCustomerGroups(CustomerInterface $customer, LoyaltyProgram $loyaltyProgram): bool
+    private function validateForCustomerGroups(int $customerGroupId, LoyaltyProgram $loyaltyProgram): bool
     {
-        $customerGroup = (int)$customer->getGroupId();
         $loyaltyProgramGroups = $loyaltyProgram->getCustomerGroupIds();
-        if (!$customerGroup || !$loyaltyProgramGroups || !in_array($customerGroup, $loyaltyProgramGroups)) {
+        if (!$loyaltyProgramGroups || !in_array((string)$customerGroupId, $loyaltyProgramGroups)) {
             return false;
         }
 
@@ -217,5 +273,15 @@ class LoyaltyProgramManagement implements LoyaltyProgramManagementInterface
         } else {
             $this->connection->update($tableName, $data, $condition);
         }
+    }
+
+    private function setCustomerProgram(?LoyaltyProgramInterface $loyaltyProgram = null): void
+    {
+        $this->customerProgram = $loyaltyProgram;
+    }
+
+    public function getCustomerProgram(): ?LoyaltyProgramInterface
+    {
+        return $this->customerProgram;
     }
 }

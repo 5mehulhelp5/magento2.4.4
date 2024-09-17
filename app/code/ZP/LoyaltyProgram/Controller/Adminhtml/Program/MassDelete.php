@@ -33,7 +33,8 @@ class MassDelete extends Action implements HttpPostActionInterface
     public function execute()
     {
         $collection = $this->filter->getCollection($this->collectionFactory->create());
-        $collectionSize = $collection->getSize();
+        $deletedPrograms = $collection->getSize();
+
 
         /** @var \Magento\Backend\Model\View\Result\Redirect $resultRedirect */
         $resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
@@ -44,7 +45,20 @@ class MassDelete extends Action implements HttpPostActionInterface
                 $this->programResource->delete($program);
             }
 
-            $this->messageManager->addSuccessMessage(__('A total of %1 program(s) have been deleted.', $collectionSize));
+            $remainingProgramsCollection = $this->collectionFactory->create();
+            $remainingProgramsCollection->addFieldToFilter('program_id', $remainingProgramsCollection->getNinBasicProgramsFilter());
+            $remainingProgramsSize = $remainingProgramsCollection->getSize();
+            if ($remainingProgramsSize === 0) {
+                $this->messageManager->addNoticeMessage(__('You deleted all Programs! Probably you should create new!'));
+            } else {
+                $this->messageManager->addNoticeMessage(
+                    __(
+                        'A total of %1 program(s) have been deleted, ' .
+                        'don\'t forget to check and update (if it is need) reference programs chain in other programs!',
+                        $deletedPrograms
+                    )
+                );
+            }
         } catch (\Exception $exception) {
             $this->messageManager->addErrorMessage(__($exception->getMessage()));
         }

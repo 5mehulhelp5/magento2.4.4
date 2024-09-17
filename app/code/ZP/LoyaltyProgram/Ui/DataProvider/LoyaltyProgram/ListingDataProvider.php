@@ -9,6 +9,7 @@ use Magento\Framework\Api\FilterBuilder;
 use Magento\Framework\Api\Search\SearchCriteriaBuilder;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\View\Element\UiComponent\DataProvider\Reporting;
+use ZP\LoyaltyProgram\Model\LoyaltyProgram;
 
 class ListingDataProvider extends DataProvider
 {
@@ -61,5 +62,15 @@ class ListingDataProvider extends DataProvider
         } else {
             parent::addFilter($filter);
         }
+    }
+
+    public function getPrimaryFieldName(): string
+    {
+        $field = parent::getPrimaryFieldName();
+        if ($field === LoyaltyProgram::PROGRAM_ID) {
+            $field = 'main_table.' . $field;
+        }
+
+        return $field;
     }
 }

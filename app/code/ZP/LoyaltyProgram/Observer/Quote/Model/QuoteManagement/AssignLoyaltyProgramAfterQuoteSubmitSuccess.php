@@ -27,13 +27,10 @@ class AssignLoyaltyProgramAfterQuoteSubmitSuccess implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-        $storeId = (int)$this->storeManager->getStore()->getId();
         $webSiteId = (int)$this->storeManager->getWebsite()->getId();
-        $isLoyaltyProgramEnable = $this->programScopeConfig->isEnabled($storeId);
+        $isLoyaltyProgramEnable = $this->programScopeConfig->isEnabled($webSiteId);
         if ($isLoyaltyProgramEnable && !$this->programScopeConfig->isApplySubtotalChangesAfterInvoice($webSiteId)) {
-            /** @var  OrderInterface $order */
-            $order = $observer->getEvent()->getOrder();
-            $customerId = $order->getCustomerId();
+            $customerId = $observer->getEvent()->getOrder()->getCustomerId();
             if (!$customerId) {
                 return;
             }
