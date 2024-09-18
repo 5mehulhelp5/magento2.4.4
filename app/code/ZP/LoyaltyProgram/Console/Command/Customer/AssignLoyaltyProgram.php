@@ -15,12 +15,14 @@ use Magento\Customer\Model\ResourceModel\Customer\CollectionFactory as CustomerC
 
 class AssignLoyaltyProgram extends Command
 {
+    public const REMOVED = 'removed';
     public const ASSIGNED = 'assigned';
     public const UPDATED = 'updated';
     public const UNABLE = 'unable';
     public const NO_NEED = 'no_need';
     public const NOT_EXIST = 'not_exist';
     public const WRONG_DATA = 'wrong_data';
+    private const REMOVED_MSG = 'Program(s) removed of such customer(s) id(s) : ';
     private const ASSIGNED_MSG = 'Assigned program(s) to customer(s) with id(s) : ';
     private const UPDATED_MSG = 'Updated programs(s) to customer(s) with id(s) : ';
     private const UNABLE_MSG = 'Unable to assign program(s) to customer(s) with id(s) : ';
@@ -34,7 +36,8 @@ class AssignLoyaltyProgram extends Command
         self::UNABLE => [],
         self::NO_NEED => [],
         self::NOT_EXIST => [],
-        self::WRONG_DATA => []
+        self::WRONG_DATA => [],
+        self::REMOVED => []
     ];
 
     private array $resultMsgs = [
@@ -43,7 +46,8 @@ class AssignLoyaltyProgram extends Command
         self::UNABLE => self::UNABLE_MSG,
         self::NO_NEED => self::NO_NEED_MSG,
         self::NOT_EXIST => self::NOT_EXIST_MSG,
-        self::WRONG_DATA => self::WRONG_DATA_MSG
+        self::WRONG_DATA => self::WRONG_DATA_MSG,
+        self::REMOVED => self::REMOVED_MSG
     ];
 
     private string $resultMsg = 'Result is : ' . "\n";
@@ -120,6 +124,7 @@ class AssignLoyaltyProgram extends Command
             }
 
             $this->assignLoyaltyProgramsToCustomers($customers);
+            $this->prepareResultMessage(self::REMOVED);
             $this->prepareResultMessage(self::ASSIGNED);
             $this->prepareResultMessage(self::UPDATED);
             $this->prepareResultMessage(self::UNABLE);
@@ -127,7 +132,8 @@ class AssignLoyaltyProgram extends Command
             $this->prepareResultMessage(self::NOT_EXIST);
             $this->prepareResultMessage(self::WRONG_DATA);
             $output->writeln($this->resultMsg);
-        } catch (\Exception) {
+        } catch (\Exception $exception) {
+            $output->write($exception->getMessage());
             parent::execute($input, $output);
         }
     }

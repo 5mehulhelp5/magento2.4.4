@@ -6,15 +6,18 @@ namespace ZP\LoyaltyProgram\Model\Customer;
 use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\Exception\NoSuchEntityException;
 use ZP\LoyaltyProgram\Api\Data\LoyaltyProgramInterface;
 use ZP\LoyaltyProgram\Api\LoyaltyProgramManagementInterface;
+use ZP\LoyaltyProgram\Api\LoyaltyProgramRepositoryInterface;
 use ZP\LoyaltyProgram\Model\LoyaltyProgram;
 use ZP\LoyaltyProgram\Model\ResourceModel\LoyaltyProgram\CollectionFactory as ProgramCollectionFactory;
 use ZP\LoyaltyProgram\Model\ResourceModel\LoyaltyProgram\Collection as ProgramCollection;
-use ZP\LoyaltyProgram\Setup\Patch\Data\AddBasicPrograms as BasicProgramsConfig;
 use ZP\LoyaltyProgram\Console\Command\Customer\AssignLoyaltyProgram as ConsoleCommandConfig;
 use Magento\Quote\Model\Quote;
 use ZP\LoyaltyProgram\Model\Config as ProgramScopeConfig;
+use Psr\Log\LoggerInterface;
+use ZP\LoyaltyProgram\Setup\Patch\Data\AddBasicPrograms as BasicProgramsConfig;
 
 class LoyaltyProgramManagement implements LoyaltyProgramManagementInterface
 {
@@ -27,7 +30,9 @@ class LoyaltyProgramManagement implements LoyaltyProgramManagementInterface
     public function __construct(
         private ResourceConnection $resourceConnection,
         private ProgramCollectionFactory $programCollectionFactory,
-        private ProgramScopeConfig $programScopeConfig
+        private ProgramScopeConfig $programScopeConfig,
+        private LoyaltyProgramRepositoryInterface $loyaltyProgramRepository,
+        private LoggerInterface $logger
     ) {
         $this->connection = $this->resourceConnection->getConnection();
     }
@@ -56,8 +61,8 @@ class LoyaltyProgramManagement implements LoyaltyProgramManagementInterface
         if (!$this->checkProgramConditions($customer, (int)$customer->getWebsiteId(), (int)$customer->getGroupId())) {
             if (!$this->customerProgram && $customerProgramResult) {
                 $this->connection->delete('zp_loyalty_program_customer', 'customer_id = ' . $this->customerId);
+                $this->result = ConsoleCommandConfig::REMOVED;
             }
-            $this->result = ConsoleCommandConfig::UNABLE;
 
             return $this->getCustomerProgram();
         }
@@ -108,7 +113,7 @@ class LoyaltyProgramManagement implements LoyaltyProgramManagementInterface
     {
         if (count($programs) === 1) {
             $program = $programs[array_key_first($programs)];
-            $programOrderSubtotal = $this->getLoyaltyProgramOrderSubtotal($program);
+            $programOrderSubtotal = $this->getProgramOrderSubtotal($program);
             if ($entityGrandTotal >= $programOrderSubtotal) {
                 $this->programToAssign = $program;
             }
@@ -123,30 +128,28 @@ class LoyaltyProgramManagement implements LoyaltyProgramManagementInterface
                     unset($programIdsArray[$programId]);
                 }
 
-                $programOrderSubtotal = $this->getLoyaltyProgramOrderSubtotal($program);
+                $programOrderSubtotal = $this->getProgramOrderSubtotal($program);
 
                 $nextProgramId = $program->getNextProgram();
                 if ($nextProgramId) {
-                    if ($nextProgramId === BasicProgramsConfig::PROGRAM_MAX) {
-                        $this->programToAssign = $program;
-                        break;
-                    } elseif (array_key_exists($nextProgramId, $programs)) {
-                        $nextProgramOrderSubtotal = $this->getLoyaltyProgramOrderSubtotal($programs[$nextProgramId]);
+                    if (array_key_exists($nextProgramId, $programs)) {
+                        $nextProgramOrderSubtotal = $this->getProgramOrderSubtotal($programs[$nextProgramId]);
                     } else {
-                        if ($programIdsArray) {
-                            $nextProgramId = array_key_first($programIdsArray);
-                            $nextProgramOrderSubtotal = $this->getLoyaltyProgramOrderSubtotal($programs[$nextProgramId]);
-                        } else {
+                        try {
+                            $nextProgramOrderSubtotal = $this->getProgramOrderSubtotal(
+                                $this->loyaltyProgramRepository->get($nextProgramId)
+                            );
+                        } catch (NoSuchEntityException $exception) {
                             $nextProgramOrderSubtotal = null;
+                        }
+
+                        if ($nextProgramOrderSubtotal === null) {
+                            $nextProgramOrderSubtotal = $this->getNextProgramOrderSubtotal($programIdsArray, $programs);
                         }
                     }
                 } else {
-                    if ($programIdsArray) {
-                        $nextProgramId = array_key_first($programIdsArray);
-                        $nextProgramOrderSubtotal = $this->getLoyaltyProgramOrderSubtotal($programs[$nextProgramId]);
-                    } else {
-                        $nextProgramOrderSubtotal = null;
-                    }
+                    $nextProgramOrderSubtotal = $this->getNextProgramOrderSubtotal($programIdsArray, $programs);
+                    $this->addLogMsg($program, LoyaltyProgram::NEXT_PROGRAM);
                 }
 
                 if ($nextProgramOrderSubtotal === null ) {
@@ -159,7 +162,7 @@ class LoyaltyProgramManagement implements LoyaltyProgramManagementInterface
                         $this->programToAssign = $program;
                         break;
                     } elseif ($entityGrandTotal < $programOrderSubtotal && $entityGrandTotal < $nextProgramOrderSubtotal) {
-                        $this->result = ConsoleCommandConfig::UNABLE;
+//                        $this->result = ConsoleCommandConfig::UNABLE;
                         break;
                     }
                 }
@@ -167,9 +170,17 @@ class LoyaltyProgramManagement implements LoyaltyProgramManagementInterface
         }
     }
 
-    private function getLoyaltyProgramOrderSubtotal(LoyaltyProgram $program): ?float
+    private function getProgramOrderSubtotal(LoyaltyProgram $program): ?float
     {
         $orderSubtotal = $program->getOrderSubtotal();
+        $programId = $program->getProgramId();
+        if (
+            !$orderSubtotal &&
+            $programId !== BasicProgramsConfig::PROGRAM_MIN &&
+            $programId !== BasicProgramsConfig::PROGRAM_MAX
+        ) {
+            $this->addLogMsg($program, LoyaltyProgram::ORDER_SUBTOTAL);
+        }
 
         return $orderSubtotal ? (float)$orderSubtotal : null;
     }
@@ -209,7 +220,7 @@ class LoyaltyProgramManagement implements LoyaltyProgramManagementInterface
         }
 
         if ($entity instanceof CustomerInterface) {
-            $grandTotal = $this->getCustomerGrandTotalSum($this->customerId);
+            $grandTotal = $this->getCustomerGrandTotalSum($webSiteId);
         } else {
             $grandTotal = (float)$entity->getGrandTotal();
         }
@@ -235,6 +246,7 @@ class LoyaltyProgramManagement implements LoyaltyProgramManagementInterface
             !$this->validatedForWebsites($webSiteId, $this->programToAssign) ||
             !$this->validateForCustomerGroups($customerGroupId, $this->programToAssign)
         ) {
+            $this->result = ConsoleCommandConfig::UNABLE;
             $this->setCustomerProgram($this->programToAssign);
 
             return false;
@@ -283,5 +295,24 @@ class LoyaltyProgramManagement implements LoyaltyProgramManagementInterface
     public function getCustomerProgram(): ?LoyaltyProgramInterface
     {
         return $this->customerProgram;
+    }
+
+    /**
+     * @param array $programIds
+     * @param LoyaltyProgram[] $programs
+     * @return float|null
+     */
+    private function getNextProgramOrderSubtotal(array $programIds, array $programs): ?float
+    {
+        return $programIds ? $this->getProgramOrderSubtotal($programs[array_key_first($programIds)]) : null;
+    }
+
+    private function addLogMsg(LoyaltyProgram $program, string $field): void
+    {
+        $this->logger->notice(
+            'Program \'' . $program->getProgramName() . '\' ' .
+            'with id : ' . '\'' . $program->getProgramId() . '\', doesn\'t have ' . '\'' . $field . '\' ' . 'data, ' .
+            'it is NULL. Update this program please!'
+        );
     }
 }
