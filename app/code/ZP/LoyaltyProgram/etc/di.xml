@@ -2,9 +2,22 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <preference for="ZP\LoyaltyProgram\Api\Data\LoyaltyProgramInterface" type="ZP\LoyaltyProgram\Model\LoyaltyProgram"/>
-    <preference for="ZP\LoyaltyProgram\Api\LoyaltyProgramRepositoryInterface" type="ZP\LoyaltyProgram\Model\LoyaltyProgramRepository"/>
-    <preference for="ZP\LoyaltyProgram\Api\LoyaltyProgramManagementInterface" type="ZP\LoyaltyProgram\Model\Customer\LoyaltyProgramManagement"/>
-    <preference for="ZP\LoyaltyProgram\Api\Data\LoyaltyProgramSearchResultsInterface" type="ZP\LoyaltyProgram\Model\LoyaltyProgramSearchResults"/>
+    <preference
+        for="ZP\LoyaltyProgram\Api\LoyaltyProgramRepositoryInterface"
+        type="ZP\LoyaltyProgram\Model\LoyaltyProgramRepository"
+    />
+    <preference
+        for="ZP\LoyaltyProgram\Api\LoyaltyProgramManagementInterface"
+        type="ZP\LoyaltyProgram\Model\Customer\LoyaltyProgramManagement"
+    />
+    <preference
+        for="ZP\LoyaltyProgram\Api\Data\LoyaltyProgramSearchResultsInterface"
+        type="ZP\LoyaltyProgram\Model\LoyaltyProgramSearchResults"
+    />
+    <preference
+        for="ZP\LoyaltyProgram\Api\Model\Validators\Controller\Adminhtml\Program\ValidatorInterface"
+        type="ZP\LoyaltyProgram\Model\Validators\Controller\Adminhtml\Program\Validator"
+    />
     <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
         <arguments>
             <argument name="collections" xsi:type="array">

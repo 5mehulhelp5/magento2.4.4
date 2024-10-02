@@ -3,53 +3,68 @@ declare(strict_types=1);
 
 namespace ZP\LoyaltyProgram\Observer\Customer\Model\ResourceModel;
 
-use Magento\Customer\Model\Data\Customer as CustomerDataModel;
+use Magento\Customer\Model\Data\Customer;
 use Magento\Framework\Event\Observer;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManagerInterface;
 use ZP\LoyaltyProgram\Api\LoyaltyProgramManagementInterface;
-use ZP\LoyaltyProgram\Model\Config as LoyaltyProgramScopeConfig;
+use ZP\LoyaltyProgram\Model\Configs\Program\Scope\Config as ProgramScopeConfig;
 use Magento\Customer\Api\Data\CustomerExtensionInterfaceFactory;
 use ZP\LoyaltyProgram\Api\LoyaltyProgramRepositoryInterface;
+use ZP\LoyaltyProgram\Model\Validators\Data\Validator;
 
 abstract class AbstractAssignLoyaltyProgram
 {
     public function __construct(
-        private LoyaltyProgramManagementInterface $loyaltyProgramManagement,
-        private StoreManagerInterface $storeManager,
-        private LoyaltyProgramScopeConfig $programScopeConfig,
-        private CustomerExtensionInterfaceFactory $customerExtensionFactory,
-        private LoyaltyProgramRepositoryInterface $loyaltyProgramRepository
+        protected LoyaltyProgramManagementInterface $loyaltyProgramManagement,
+        protected StoreManagerInterface $storeManager,
+        protected ProgramScopeConfig $programScopeConfig,
+        protected CustomerExtensionInterfaceFactory $customerExtensionFactory,
+        protected LoyaltyProgramRepositoryInterface $loyaltyProgramRepository,
+        protected Validator $dataValidator
     ) {}
 
+    /**
+     * @param Observer $observer
+     * @throws LocalizedException
+     * @throws \Exception
+     */
     public function execute(Observer $observer)
     {
-        $webSiteId = (int)$this->storeManager->getWebsite()->getId();
-        $isLoyaltyProgramEnable = $this->programScopeConfig->isEnabled($webSiteId);
-        if ($isLoyaltyProgramEnable) {
-            $customerDataModel = $this->getCustomer($observer);
-            /** @var CustomerDataModel $customerDataModel */
-            $customerId = $customerDataModel->getId();
-            if ($customerId) {
-                $customerExtension = $customerDataModel->getExtensionAttributes();
-                $customerExtension = $customerExtension ? $customerExtension : $this->customerExtensionFactory->create();
+        if ($this->programScopeConfig->isEnabled((int)$this->storeManager->getWebsite()->getId())) {
+            $customer = $this->getCustomer($observer);
+            /** @var Customer $customer */
+            $customerId = $customer->getId();
+            if ($customerId !== null) {
+                if (!$this->dataValidator->isDataInteger($customerId)) {
+                    throw new \Exception('Wrong data type of customer_id!');
+                }
+                $customerExtension = $customer->getExtensionAttributes();
+                $customerExtension = $customerExtension ?: $this->customerExtensionFactory->create();
                 $customerProgramId = $customerExtension->getLoyaltyProgramId();
-                $customerProgram = null;
-                if ($customerProgramId) {
-                    try {
-                        $customerProgram = $this->loyaltyProgramRepository->get((int)$customerProgramId);
-                    } catch (NoSuchEntityException $exception) {
+                if ($customerProgramId !== null) {
+                    if (!$this->dataValidator->isDataInteger($customerProgramId)) {
+                        throw new \Exception('Wrong data type of customer extension attribute `loyalty_program_id`!');
+                    }
+
+                    $customerProgram = null;
+                    if ($customerProgramId) {
+                        try {
+                            $customerProgram = $this->loyaltyProgramRepository->get((int)$customerProgramId);
+                        } catch (NoSuchEntityException $exception) {
+                            //do nothing
+                        }
 
                     }
 
-                }
-
-                if (!$customerProgram || !$customerProgram->getIsActive()) {
-                    $this->loyaltyProgramManagement->assignLoyaltyProgram($customerDataModel);
+                    if (!$customerProgram || !$customerProgram->getIsActive()) {
+                        $this->loyaltyProgramManagement->assignLoyaltyProgram($customer);
+                    }
                 }
             }
         }
     }
 
-    abstract protected function getCustomer(Observer $observer): CustomerDataModel;
+    abstract protected function getCustomer(Observer $observer): Customer;
 }

@@ -12,7 +12,7 @@ class DeleteButton extends AbstractButton
 
     protected function validateProgramId(): bool
     {
-        return (parent::validateProgramId() && $this->programId !== null);
+        return ($this->programId !== null && parent::validateProgramId());
     }
 
     protected function getData(): array

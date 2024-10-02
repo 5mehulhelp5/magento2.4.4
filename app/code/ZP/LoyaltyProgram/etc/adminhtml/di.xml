@@ -1,6 +1,10 @@
 <?xml version="1.0" ?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference
+        for="ZP\LoyaltyProgram\Api\Model\Validators\Controller\Adminhtml\Program\MassAction\ValidatorInterface"
+        type="ZP\LoyaltyProgram\Model\Validators\Controller\Adminhtml\Program\MassAction\Validator"
+    />
     <type name="ZP\LoyaltyProgram\Ui\DataProvider\LoyaltyProgram\ListingDataProvider">
         <arguments>
             <argument name="additionalFilterPool" xsi:type="array">

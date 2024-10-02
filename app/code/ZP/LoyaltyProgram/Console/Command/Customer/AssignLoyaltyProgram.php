@@ -5,52 +5,22 @@ namespace ZP\LoyaltyProgram\Console\Command\Customer;
 
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Customer\Api\Data\CustomerInterface;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use ZP\LoyaltyProgram\Api\LoyaltyProgramManagementInterface;
-use Magento\Customer\Model\Data\Customer;
-use Magento\Customer\Model\ResourceModel\Customer\CollectionFactory as CustomerCollectionFactory;
+use ZP\LoyaltyProgram\Model\Prepare\Data\DataPreparer;
+use ZP\LoyaltyProgram\Model\Validators\Data\Validator;
+use ZP\LoyaltyProgram\Model\MessageManager\Console\Command\Customer\AssignLoyaltyProgram\MessageManager;
 
 class AssignLoyaltyProgram extends Command
 {
-    public const REMOVED = 'removed';
-    public const ASSIGNED = 'assigned';
-    public const UPDATED = 'updated';
-    public const UNABLE = 'unable';
-    public const NO_NEED = 'no_need';
-    public const NOT_EXIST = 'not_exist';
-    public const WRONG_DATA = 'wrong_data';
-    private const REMOVED_MSG = 'Program(s) removed of such customer(s) id(s) : ';
-    private const ASSIGNED_MSG = 'Assigned program(s) to customer(s) with id(s) : ';
-    private const UPDATED_MSG = 'Updated programs(s) to customer(s) with id(s) : ';
-    private const UNABLE_MSG = 'Unable to assign program(s) to customer(s) with id(s) : ';
-    private const NO_NEED_MSG = 'No need to assign program(s) to customer(s) with id(s) : ';
-    private const NOT_EXIST_MSG = 'Customer(s) with such id(s) not exist : ';
-    private const WRONG_DATA_MSG = 'Data type of this customer(s) id(s) not correct : ';
-
-    private array $results = [
-        self::ASSIGNED => [],
-        self::UPDATED => [],
-        self::UNABLE => [],
-        self::NO_NEED => [],
-        self::NOT_EXIST => [],
-        self::WRONG_DATA => [],
-        self::REMOVED => []
-    ];
-
-    private array $resultMsgs = [
-        self::ASSIGNED => self::ASSIGNED_MSG,
-        self::UPDATED => self::UPDATED_MSG,
-        self::UNABLE => self::UNABLE_MSG,
-        self::NO_NEED => self::NO_NEED_MSG,
-        self::NOT_EXIST => self::NOT_EXIST_MSG,
-        self::WRONG_DATA => self::WRONG_DATA_MSG,
-        self::REMOVED => self::REMOVED_MSG
-    ];
-
-    private string $resultMsg = 'Result is : ' . "\n";
+    private const CUSTOMER_IDS = 'customer_ids';
+    private bool $isAllCustomers;
 
     /**
      * @param string|null $name
@@ -58,9 +28,10 @@ class AssignLoyaltyProgram extends Command
     public function __construct(
         private CustomerRepositoryInterface $customerRepository,
         private SearchCriteriaBuilder $searchCriteriaBuilder,
-        private CustomerCollectionFactory $customerCollectionFactory,
         private LoyaltyProgramManagementInterface $loyaltyProgramManagement,
-
+        private DataPreparer $prepareData,
+        private Validator $dataValidator,
+        private MessageManager $messageManager,
         string $name = null
     ) {
         parent::__construct($name);
@@ -73,7 +44,7 @@ class AssignLoyaltyProgram extends Command
         );
 
         $this->addArgument(
-            'customer_ids',
+            self::CUSTOMER_IDS,
             InputArgument::IS_ARRAY,
             'Separate multiple ids with a space.'
         );
@@ -81,167 +52,149 @@ class AssignLoyaltyProgram extends Command
         parent::configure();
     }
 
+
     public function execute(InputInterface $input, OutputInterface $output)
     {
         try {
-            $customerIds = $input->getArgument('customer_ids');
-            if (!$this->isAllCustomers($customerIds)) {
-                $checkedCustomerIds = $this->checkDataType($customerIds);
-                if (!$checkedCustomerIds && $this->results[self::WRONG_DATA]) {
-                    $this->prepareResultMessage(self::WRONG_DATA);
-                    $output->writeln($this->resultMsg);
+            $customerIds = $this->validateCustomerIds($this->getCustomerIds($input));
+            if (
+                !$this->isAllCustomers() && !$customerIds &&
+                !$this->messageManager->isResultTypeEmpty(MessageManager::WRONG_DATA)
+            ) {
+                $output->writeln($this->messageManager->getResultMessage(MessageManager::WRONG_DATA));
 
-                    return;
-                }
-            } else {
-                $checkedCustomerIds = [];
+                return 1;
             }
 
-            if (count($checkedCustomerIds) !== 1) {
-                if (!$this->isAllCustomers($customerIds)) {
-                    $searchCriteria = $this->searchCriteriaBuilder
-                        ->addFilter('entity_id', $checkedCustomerIds, 'in')
-                        ->create();
-                    $customerIds = $checkedCustomerIds;
-                } else {
-                    $searchCriteria = $this->searchCriteriaBuilder->create();
+            /** @var CustomerInterface[] $customers */
+            $customers = $this->getCustomers($customerIds);
+            if (!$this->compareCustomersCount($customers, $customerIds) && !$customers) {
+                if ($this->messageManager->isResultTypeEmpty(MessageManager::NOT_EXIST)) {
+                    $output->writeln('We don\'t have any customers at the moment!');
+
+                    return 1;
                 }
 
-                $customers = $this->customerRepository->getList($searchCriteria)->getItems();
-            } else {
-                $customers[] = $this->customerRepository->getById($checkedCustomerIds[array_key_first($checkedCustomerIds)]);
-            }
+                $output->writeln($this->messageManager->getResultMessage());
 
-            if (!$this->checkCustomersCount($customers, $customerIds, $output) && !$customers) {
-                if ($this->results[self::WRONG_DATA]) {
-                    $this->prepareResultMessage(self::WRONG_DATA);
-                }
-
-                $this->prepareResultMessage(self::NOT_EXIST);
-                $output->writeln($this->resultMsg);
-
-                return;
+                return 1;
             }
 
             $this->assignLoyaltyProgramsToCustomers($customers);
-            $this->prepareResultMessage(self::REMOVED);
-            $this->prepareResultMessage(self::ASSIGNED);
-            $this->prepareResultMessage(self::UPDATED);
-            $this->prepareResultMessage(self::UNABLE);
-            $this->prepareResultMessage(self::NO_NEED);
-            $this->prepareResultMessage(self::NOT_EXIST);
-            $this->prepareResultMessage(self::WRONG_DATA);
-            $output->writeln($this->resultMsg);
+            $output->writeln($this->messageManager->getResultMessage());
+
+            return 0;
         } catch (\Exception $exception) {
-            $output->write($exception->getMessage());
-            parent::execute($input, $output);
+            $output->writeln($exception->getMessage());
+
+            return 1;
         }
     }
 
-    private function isAllCustomers(array $data): bool
+    private function isAllCustomers(): bool
     {
-        return !$data;
-    }
-
-    private function checkDataType(array $customerIds): array
-    {
-        foreach ($customerIds as $key => $customerId) {
-            if (!$this->isCorrectDataType($customerId)) {
-                $this->results[self::WRONG_DATA][$customerId] = $customerId;
-                unset($customerIds[$key]);
-            } else {
-                $customerIds[$key] = (int)$customerId;
-            }
-        }
-
-        return $customerIds;
-    }
-
-    private function isCorrectDataType($data): bool
-    {
-        if (!is_numeric($data) || !$this->isInteger($data)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    private function isInteger($data): bool
-    {
-        preg_match('/\./', (string)$data, $matches);
-        if ($matches) {
-            return false;
-        }
-
-        return true;
-    }
-
-    private function checkCustomersCount(
-        array $customers,
-        array $customersIdsFromCommand,
-        OutputInterface $output
-    ): bool {
-        $result = true;
-        $countCustomersFromCollection = count($customers);
-        $countCustomersFromCommand = count($customersIdsFromCommand);
-        $isAllCustomers = $this->isAllCustomers($customersIdsFromCommand);
-        if ($isAllCustomers && !$customers) {
-            $result = false;
-            $output->writeln('We dont have any customers at this moment.');
-        } elseif (!$isAllCustomers && !$customers) {
-            $result = false;
-            foreach ($customersIdsFromCommand as $customerId) {
-                $this->results[self::NOT_EXIST][$customerId] = $customerId;
-            }
-        } elseif (!$isAllCustomers && $countCustomersFromCollection !== $countCustomersFromCommand) {
-            $customersIdsFromCollection = [];
-            /** @var Customer $customer */
-            foreach ($customers as $customer) {
-                $customerId = (int)$customer->getId();
-                $customersIdsFromCollection[$customerId] = $customerId;
-            }
-
-            foreach ($customersIdsFromCommand as $customerId) {
-                if (!in_array($customerId, $customersIdsFromCollection)) {
-                    $this->results[self::NOT_EXIST][$customerId] = $customerId;
-                }
-            }
-        }
-
-        return $result;
-    }
-
-    private function prepareResultMessage(string $resultType): void
-    {
-        if ($this->results[$resultType]) {
-            $this->resultMsg .= $this->resultMsgs[$resultType];
-            $resultCount = count($this->results[$resultType]);
-            $i = 1;
-            foreach ($this->results[$resultType] as $customerId) {
-                $this->resultMsg .= $customerId;
-                if ($i !== $resultCount) {
-                    $this->resultMsg .= ', ';
-                } else {
-                    $this->resultMsg .= '.' . "\n";
-                }
-
-                $i++;
-            }
-        }
+        return $this->isAllCustomers;
     }
 
     /**
-     * @param Customer[] $customers
+     * @param array $customerIds
+     * @return array
+     * @throws \Exception
+     */
+    private function checkDataType(array $customerIds): array
+    {
+        foreach ($customerIds as $key => $customerId) {
+            if (!$this->dataValidator->isDataInteger($customerId)) {
+                $this->messageManager->setResultValue(MessageManager::WRONG_DATA, $customerId);
+                unset($customerIds[$key]);
+            }
+        }
+
+        return $this->prepareData->makeArrayKeysLikeValues($this->prepareData->arrayValuesToInteger($customerIds));
+    }
+
+    /**
+     * @param array $customers
+     * @param array $customerIds
+     * @return bool
+     * @throws \Exception
+     */
+    private function compareCustomersCount(
+        array $customers,
+        array $customerIds
+    ): bool {
+
+        if (!$customers || count($customers) !== count($customerIds)) {
+            foreach ($customerIds as $customerId) {
+                if (!array_key_exists($customerId, $customers)) {
+                    $this->messageManager->setResultValue(MessageManager::NOT_EXIST, $customerId);
+                }
+            }
+        }
+
+        return (bool)$customers;
+    }
+
+    /**
+     * @param CustomerInterface[] $customers
      * @throws \Exception
      */
     private function assignLoyaltyProgramsToCustomers(array $customers): void
     {
-        /** @var Customer $customer */
-        foreach ($customers as $customer) {
+        /** @var CustomerInterface $customer */
+        foreach ($customers as $customerId => $customer) {
             $this->loyaltyProgramManagement->assignLoyaltyProgram($customer);
             $result = $this->loyaltyProgramManagement->returnResult();
-            $customerId = (int)$customer->getId();
-            $this->results[$result][$customerId] = $customerId;
+            $this->messageManager->setResultValue($this->loyaltyProgramManagement->returnResult(), $customerId);
         }
+    }
+
+    private function getCustomerIds(InputInterface $input)
+    {
+        $customerIds = $input->getArgument(self::CUSTOMER_IDS);
+        $this->setIsAllCustomersProperty(!$customerIds);
+
+        return $customerIds;
+    }
+
+    /**
+     * @param array $customerIds
+     * @return array
+     * @throws \Exception
+     */
+    private function validateCustomerIds(array $customerIds): array
+    {
+        return $this->isAllCustomers() ? $customerIds : $this->checkDataType($customerIds);
+    }
+
+    /**
+     * @param array $customerIds
+     * @return array
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
+    private function getCustomers(array $customerIds): array
+    {
+        $customers = [];
+        if (count($customerIds) === 1) {
+            $data[] = $this->customerRepository->getById($customerIds[array_key_first($customerIds)]);
+        } else {
+            if (!$this->isAllCustomers()) {
+                $this->searchCriteriaBuilder->addFilter('entity_id', $customerIds, 'in');
+            }
+
+            $data = $this->customerRepository->getList($this->searchCriteriaBuilder->create())->getItems();
+        }
+
+        foreach ($data as $customer) {
+            $customers[(int)$customer->getId()] = $customer;
+        }
+
+        return $customers;
+    }
+
+    private function setIsAllCustomersProperty(bool $value): void
+    {
+        $this->isAllCustomers = $value;
     }
 }

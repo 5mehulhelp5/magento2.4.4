@@ -19,12 +19,16 @@ class Collection extends AbstractCollection
     }
 
     /**
-     * @return array[]
+     * @param string|null $tableAlias
+     * @return $this
      */
-    public function getNinBasicProgramsFilter(): array
+    public function excludeBasicPrograms(string $tableAlias = null): self
     {
-        return [
-            'nin' => [BasicProgramsConfig::PROGRAM_MIN, BasicProgramsConfig::PROGRAM_MAX]
-        ];
+        $field = $tableAlias ? $tableAlias . '.' . LoyaltyProgramModel::PROGRAM_ID : LoyaltyProgramModel::PROGRAM_ID;
+
+        return $this->addFieldToFilter(
+            $field,
+            ['nin' => [BasicProgramsConfig::PROGRAM_MIN, BasicProgramsConfig::PROGRAM_MAX]]
+        );
     }
 }

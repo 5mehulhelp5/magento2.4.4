@@ -13,6 +13,8 @@ use ZP\LoyaltyProgram\Model\LoyaltyProgram;
 
 class ListingDataProvider extends DataProvider
 {
+    public const MAIN_TABLE_ALIAS = 'main_table';
+
     /**
      * @param string $name
      * @param string $primaryFieldName
@@ -68,7 +70,7 @@ class ListingDataProvider extends DataProvider
     {
         $field = parent::getPrimaryFieldName();
         if ($field === LoyaltyProgram::PROGRAM_ID) {
-            $field = 'main_table.' . $field;
+            $field = self::MAIN_TABLE_ALIAS. '.' . $field;
         }
 
         return $field;

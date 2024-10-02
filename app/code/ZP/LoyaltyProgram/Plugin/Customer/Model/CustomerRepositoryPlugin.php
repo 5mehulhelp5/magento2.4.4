@@ -8,6 +8,7 @@ use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Customer\Api\Data\CustomerExtensionInterface;
 use Magento\Customer\Api\Data\CustomerExtensionInterfaceFactory;
+use ZP\LoyaltyProgram\Model\Configs\Customer\Program\Config as CustomerProgramConfig;
 
 class CustomerRepositoryPlugin
 {
@@ -31,10 +32,10 @@ class CustomerRepositoryPlugin
     {
         $connection = $this->resourceConnection->getConnection();
         $select = $connection->select()
-            ->from('zp_loyalty_program_customer', 'program_id')
-            ->where('customer_id = (?)', $customer->getId());
+            ->from(CustomerProgramConfig::CUSTOMER_PROGRAM_TABLE, CustomerProgramConfig::PROGRAM_ID)
+            ->where(CustomerProgramConfig::CUSTOMER_ID . ' = (?)', $customer->getId());
         $result = $connection->fetchOne($select);
-        if ($result) {
+        if ($result !== null && $result !== false) {
             $extensionAttributes = $customer->getExtensionAttributes();
             if ($extensionAttributes === null) {
                 $extensionAttributes = $this->customerExtensionFactory->create();

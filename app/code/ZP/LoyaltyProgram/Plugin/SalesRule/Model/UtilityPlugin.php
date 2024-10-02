@@ -6,36 +6,46 @@ namespace ZP\LoyaltyProgram\Plugin\SalesRule\Model;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\CustomerExtensionInterface;
 use Magento\Customer\Api\Data\CustomerExtensionInterfaceFactory;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\SalesRule\Model\Utility;
 use Magento\SalesRule\Model\Rule;
+use Magento\SalesRule\Model\Data\Rule as RuleDataModel;
 use Magento\Quote\Model\Quote\Address;
 use Magento\Customer\Model\Data\Customer;
 use Magento\Store\Model\StoreManagerInterface;
 use ZP\LoyaltyProgram\Model\LoyaltyProgram;
 use ZP\LoyaltyProgram\Api\LoyaltyProgramRepositoryInterface;
-use ZP\LoyaltyProgram\Plugin\SalesRule\Model\Rule\DataProviderPlugin as RuleConfig;
+use ZP\LoyaltyProgram\Model\Prepare\Data\DataPreparer;
+use ZP\LoyaltyProgram\Model\Validators\Data\Validator;
+use ZP\LoyaltyProgram\Plugin\SalesRule\Model\Rule\DataProviderPlugin as RuleProgramConfig;
 use ZP\LoyaltyProgram\Api\LoyaltyProgramManagementInterface;
+use Magento\Customer\Model\Group;
 
 class UtilityPlugin
 {
+    public const WEBSITE_IDS = 'website_ids';
+    public const CUSTOMER_GROUP_IDS = 'customer_group_ids';
+    public const LOYALTY_PROGRAM_IDS = 'loyalty_program_ids';
+
     private array $conditionsResult = [
-        'web_sites' => false,
-        'customer_groups' => false,
-        'loyalty_programs' => false
+        self::WEBSITE_IDS => false,
+        self::CUSTOMER_GROUP_IDS => false,
+        self::LOYALTY_PROGRAM_IDS => false
     ];
     private array $ruleData = [
-        'web_sites' => [],
-        'customer_groups' => [],
-        'loyalty_programs' => []
+        self::WEBSITE_IDS => [],
+        self::CUSTOMER_GROUP_IDS => [],
+        self::LOYALTY_PROGRAM_IDS => []
     ];
     private array $customerData = [
-        'web_sites' => 0,
-        'customer_groups' => 0,
-        'loyalty_programs' => 0
+        self::WEBSITE_IDS => 0,
+        self::CUSTOMER_GROUP_IDS => 0,
+        self::LOYALTY_PROGRAM_IDS => 0
     ];
     private array $loyaltyProgramData = [
-        'web_sites' => 0,
-        'customer_groups' => []
+        self::WEBSITE_IDS => 0,
+        self::CUSTOMER_GROUP_IDS => []
     ];
 
     public function __construct(
@@ -43,101 +53,115 @@ class UtilityPlugin
         private CustomerExtensionInterfaceFactory $customerExtensionFactory,
         private LoyaltyProgramRepositoryInterface $loyaltyProgramRepository,
         private StoreManagerInterface $storeManager,
-        private LoyaltyProgramManagementInterface $loyaltyProgramManagement
+        private LoyaltyProgramManagementInterface $loyaltyProgramManagement,
+        private DataPreparer $prepareData,
+        private Validator $dataValidator
     ) {}
 
+    /**
+     * @param Utility $subject
+     * @param bool $result
+     * @param Rule $rule
+     * @param Address $address
+     * @return bool
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     * @throws \Exception
+     */
     public function afterCanProcessRule(Utility $subject, bool $result, Rule $rule, Address $address): bool
     {
-        if ($result) {
-            if ($rule->getData(RuleConfig::IS_LOYALTY_RULE)) {
-                $customerId = $address->getCustomerId();
-                if ($customerId) {
-                    $customer = $this->getCustomer((int)$customerId);
-                    $customerLoyaltyProgram = $this->getCustomerProgram($customer);
-                    if (!$customerLoyaltyProgram || !$customerLoyaltyProgram->getIsActive()) {
-                        $customerLoyaltyProgram = $this->loyaltyProgramManagement->assignLoyaltyProgram($customer);
-                    }
-                    $webSiteId = $customer->getWebsiteId();
-                    if (!$webSiteId) {
-                        return $this->returnFalse($rule, $address);
-                    }
-                    $webSiteId = (int)$webSiteId;
-                    $groupId = $customer->getGroupId();
-                    if (!$groupId) {
-                        return $this->returnFalse($rule, $address);
-                    }
-
-                    $groupId = (int)$groupId;
-                } else {
-                    $quote = $address->getQuote();
-                    $webSiteId = (int)$this->storeManager->getWebsite()->getId();
-                    $groupId = 0;
-                    if(!$this->loyaltyProgramManagement->checkProgramConditions($quote, $webSiteId, $groupId)) {
-                        return $this->returnFalse($rule, $address);
-                    } else {
-                        $customerLoyaltyProgram = $this->loyaltyProgramManagement->getCustomerProgram();
-                    }
-                }
-
-                if (
-                    !$this->setLoyaltyProgramDataProperty($customerLoyaltyProgram) ||
-                    !$this->setCustomerDataProperty($groupId, $webSiteId, (int)$customerLoyaltyProgram->getProgramId()) ||
-                    !$this->setRuleDataProperty($rule) ||
-                    !$this->checkConditionsResult()
-                ) {
-                    return $this->returnFalse($rule, $address);
-                }
-
-                return $this->returnTrue($rule, $address);
-            }
+        if (!$result || !$rule->getData(RuleProgramConfig::IS_LOYALTY_RULE)) {
+            return $result;
         }
 
-        return $result;
+        $customerId = $address->getCustomerId();
+        if ($customerId === null || $customerId === false) {
+            $quote = $address->getQuote();
+            $websiteId = $this->storeManager->getWebsite()->getId();
+            if (!$this->dataValidator->isDataInteger($websiteId)) {
+                return $this->returnFalse($rule, $address);
+            }
+
+            $websiteId = (int)$websiteId;
+            $groupId = Group::NOT_LOGGED_IN_ID;
+            if (!$this->loyaltyProgramManagement->checkProgramConditions($quote, $websiteId, $groupId)) {
+                return $this->returnFalse($rule, $address);
+            }
+
+            $customerProgram = $this->loyaltyProgramManagement->returnCustomerProgram();
+        } else {
+            if (!$this->dataValidator->isDataInteger($customerId)) {
+                return $this->returnFalse($rule, $address);
+            }
+
+            $customer = $this->getCustomer((int)$customerId);
+            if (!$this->validateCustomerData($customer)) {
+                $this->returnFalse($rule, $address);
+            }
+
+            $websiteId = (int)$customer->getWebsiteId();
+            $groupId = (int)$customer->getGroupId();
+
+            $customerProgram = $this->getOrAssignLoyaltyProgram($customer);
+        }
+
+        if (!$this->validateLoyaltyProgram($customerProgram, $groupId, $websiteId, $rule)) {
+            return $this->returnFalse($rule, $address);
+        }
+
+        return $this->returnTrue($rule, $address);
     }
 
-    private function checkGroups(
+    /**
+     * @param $customer
+     * @return LoyaltyProgram|null
+     * @throws \Exception
+     */
+    private function getOrAssignLoyaltyProgram($customer): ?LoyaltyProgram
+    {
+        $customerLoyaltyProgram = $this->getCustomerProgram($customer);
+
+        if ($customerLoyaltyProgram && !$customerLoyaltyProgram->getIsActive()) {
+            $customerLoyaltyProgram = $this->loyaltyProgramManagement->assignLoyaltyProgram($customer);
+        }
+
+        return $customerLoyaltyProgram;
+    }
+
+    private function validateCustomerData($customer): bool
+    {
+        $websiteId = $customer->getWebsiteId();
+        $groupId = $customer->getGroupId();
+        if ($this->dataValidator->isDataInteger($websiteId) && $this->dataValidator->isDataInteger($groupId)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private function compareGroups(
         int $customerGroupId,
         array $ruleCustomerGroupsIds,
         array $programCustomerGroupIds,
     ): bool {
-        if (!in_array($customerGroupId, $ruleCustomerGroupsIds) || !in_array($customerGroupId, $programCustomerGroupIds)) {
-            return false;
+        if (in_array($customerGroupId, $ruleCustomerGroupsIds) && in_array($customerGroupId, $programCustomerGroupIds)) {
+            return (bool)array_uintersect($programCustomerGroupIds, $ruleCustomerGroupsIds, "strcasecmp");
         }
 
-        if (!array_uintersect($programCustomerGroupIds, $ruleCustomerGroupsIds, "strcasecmp")) {
-            return false;
-        }
-
-        return true;
+        return false;
     }
 
-    private function checkWebSites(
-        int $customerWebSiteId,
-        int $programWebSiteId,
-        array $ruleWebSiteIds
+    private function compareWebsites(
+        int $customerWebsiteId,
+        int $programWebsiteId,
+        array $ruleWebsiteIds
     ): bool {
-        if ($customerWebSiteId !== $programWebSiteId || !in_array($customerWebSiteId, $ruleWebSiteIds)) {
-            return false;
-        }
-
-       return true;
+        return $customerWebsiteId === $programWebsiteId && in_array($customerWebsiteId, $ruleWebsiteIds);
     }
 
-    private function checkLoyaltyPrograms(int $customerProgramId, array $ruleProgramIds): bool
+    private function compareLoyaltyPrograms(int $customerProgramId, array $ruleProgramIds): bool
     {
         return in_array($customerProgramId, $ruleProgramIds);
-    }
-
-    private function prepareDataOfIds(array $data): array
-    {
-        $returnData = [];
-        if ($data) {
-            foreach ($data as $id) {
-                $returnData[(int)$id] = (int)$id;
-            }
-        }
-
-        return $returnData;
     }
 
     private function returnTrue(Rule $rule, Address $address): bool
@@ -156,57 +180,88 @@ class UtilityPlugin
         return $result;
     }
 
+    /**
+     * @param Rule $rule
+     * @return bool
+     * @throws \Exception
+     */
     private function setRuleDataProperty(Rule $rule): bool
     {
-        $customerGroupsIds = $this->prepareDataOfIds($rule->getCustomerGroupIds());
-        $webSiteIds = $this->prepareDataOfIds($rule->getWebsiteIds());
-        $loyaltyProgramIds = $rule->getData('loyalty_program_ids');
-        if (!$loyaltyProgramIds || !$webSiteIds || !$customerGroupsIds) {
+        $customerGroupsIds = $this->getMultiselectFieldIntData(
+            $rule->getCustomerGroupIds(), RuleDataModel::KEY_CUSTOMER_GROUPS, 'SalesRule'
+        );
+
+        $websiteIds = $this->getMultiselectFieldIntData(
+            $rule->getWebsiteIds(), RuleDataModel::KEY_WEBSITES, 'SalesRule'
+        );
+
+        $loyaltyProgramIds = $this->getMultiselectFieldIntData(
+            $rule->getData(RuleProgramConfig::LOYALTY_PROGRAM_IDS),
+            RuleProgramConfig::LOYALTY_PROGRAM_IDS,
+            'SalesRule'
+        );
+
+        if (!$loyaltyProgramIds || !$websiteIds || !$customerGroupsIds) {
             return false;
         }
 
-        $loyaltyProgramIds = $this->prepareDataOfIds(explode(',', $loyaltyProgramIds));
-        $this->ruleData['web_sites'] = $webSiteIds;
-        $this->ruleData['customer_groups'] = $customerGroupsIds;
-        $this->ruleData['loyalty_programs'] = $loyaltyProgramIds;
+        $this->ruleData[self::WEBSITE_IDS] = $websiteIds;
+        $this->ruleData[self::CUSTOMER_GROUP_IDS] = $customerGroupsIds;
+        $this->ruleData[self::LOYALTY_PROGRAM_IDS] = $loyaltyProgramIds;
 
         return true;
     }
 
-    private function setCustomerDataProperty(?int $customerGroupId, ?int $webSiteId, ?int $loyaltyProgramId): bool
+    /**
+     * @param mixed $data
+     * @param string $fieldName
+     * @param string $entityName
+     * @return array
+     * @throws \Exception
+     */
+    private function getMultiselectFieldIntData(mixed $data, string $fieldName, string $entityName): array
     {
-        if (!$webSiteId || !$loyaltyProgramId) {
-            return false;
-        }
+        $data = $this->dataValidator->validateMultiselectFieldIntData($data, $fieldName, $entityName);
 
-        $this->customerData['web_sites'] = (int)$webSiteId;
-        $this->customerData['customer_groups'] = (int)$customerGroupId;
-        $this->customerData['loyalty_programs'] = (int)$loyaltyProgramId;
+        return $this->prepareData->makeArrayKeysLikeValues($this->prepareData->arrayValuesToInteger($data));
+    }
+
+    private function setCustomerDataProperty(int $customerGroupId, int $websiteId, int $loyaltyProgramId): bool
+    {
+        $this->customerData[self::WEBSITE_IDS] = $websiteId;
+        $this->customerData[self::CUSTOMER_GROUP_IDS] = $customerGroupId;
+        $this->customerData[self::LOYALTY_PROGRAM_IDS] = $loyaltyProgramId;
+
         return true;
     }
 
+    /**
+     * @param LoyaltyProgram|null $loyaltyProgram
+     * @return bool
+     * @throws \Exception
+     */
     private function setLoyaltyProgramDataProperty(?LoyaltyProgram $loyaltyProgram): bool
     {
         if (!$loyaltyProgram) {
             return false;
         }
 
-        $customerGroupsIds = $loyaltyProgram->getCustomerGroupIds();
+        $customerGroupsIds = $this->prepareData->makeArrayKeysLikeValues($loyaltyProgram->getCustomerGroupIds());
         $websiteId = $loyaltyProgram->getWebsiteId();
-        if (!$customerGroupsIds || !$websiteId) {
+        if (!$customerGroupsIds || $websiteId === null) {
             return false;
         }
 
-        $this->loyaltyProgramData['customer_groups'] = $this->prepareDataOfIds($customerGroupsIds);
-        $this->loyaltyProgramData['web_sites'] = (int)$websiteId;
+        $this->loyaltyProgramData[self::CUSTOMER_GROUP_IDS] = $customerGroupsIds;
+        $this->loyaltyProgramData[self::WEBSITE_IDS] = $websiteId;
         return true;
     }
 
     /**
      * @param int $customerId
      * @return Customer
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
     private function getCustomer(int $customerId): Customer
     {
@@ -223,14 +278,34 @@ class UtilityPlugin
             /** @var CustomerExtensionInterface $extensionAttributes */
 
             $loyaltyProgramId = $extensionAttributes->getLoyaltyProgramId();
-            if (!$loyaltyProgramId) {
-                return null;
+            if ($loyaltyProgramId !== null || $loyaltyProgramId !== false) {
+                return $this->loyaltyProgramRepository->get((int)$loyaltyProgramId);
             }
 
-            return $this->loyaltyProgramRepository->get((int)$loyaltyProgramId);
+            return null;
         } catch (\Exception $exception) {
             return null;
         }
+    }
+
+    /**
+     * @param LoyaltyProgram $customerProgram
+     * @param int $groupId
+     * @param int $websiteId
+     * @param Rule $rule
+     * @return bool
+     * @throws \Exception
+     */
+    private function validateLoyaltyProgram(
+        LoyaltyProgram $customerProgram,
+        int $groupId,
+        int $websiteId,
+        Rule $rule
+    ): bool {
+        return $this->setLoyaltyProgramDataProperty($customerProgram) &&
+            $this->setCustomerDataProperty($groupId, $websiteId, $customerProgram->getProgramId()) &&
+            $this->setRuleDataProperty($rule) &&
+            $this->checkConditionsResult();
     }
 
     private function checkConditionsResult(): bool
@@ -239,26 +314,23 @@ class UtilityPlugin
             $ruleData = $this->ruleData[$key];
             $customerData = $this->customerData[$key];
             $loyaltyProgramData = $this->loyaltyProgramData[$key] ?? null;
-            $this->conditionsResult[$key] = $this->checkConditionsData($key, $ruleData, $customerData, $loyaltyProgramData);
+            $this->conditionsResult[$key] = $this->compareConditionData($key, $ruleData, $customerData, $loyaltyProgramData);
         }
 
-        if (in_array(false, $this->conditionsResult)) {
-            return false;
-        }
-
-        return true;
+        return !in_array(false, $this->conditionsResult);
     }
 
-    private function checkConditionsData(string $fieldType ,$ruleData, $customerData, $programData = null): bool
+    private function compareConditionData(string $fieldType ,$ruleData, $customerData, $programData = null): bool
     {
-        if ($fieldType === 'customer_groups') {
-            return $this->checkGroups($customerData, $ruleData, $programData);
-        } elseif ($fieldType === 'web_sites') {
-            return $this->checkWebSites($customerData, $programData, $ruleData);
-        } elseif ($fieldType === 'loyalty_programs') {
-            return $this->checkLoyaltyPrograms($customerData, $ruleData);
-        } else {
-            return false;
+        switch ($fieldType) {
+            case self::CUSTOMER_GROUP_IDS :
+                return $this->compareGroups($customerData, $ruleData, $programData);
+            case self::WEBSITE_IDS :
+                return $this->compareWebsites($customerData, $programData, $ruleData);
+            case self::LOYALTY_PROGRAM_IDS :
+                return $this->compareLoyaltyPrograms($customerData, $ruleData);
+            default:
+                return false;
         }
     }
 }

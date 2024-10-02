@@ -45,7 +45,7 @@
     <table name="zp_loyalty_program_customer" resource="default" engine="innodb" comment="Zp Loyalty Program Customer Table">
         <column xsi:type="int" name="customer_id" unsigned="true" nullable="false" identity="false"
                 comment="Customer ID"/>
-        <column xsi:type="int" name="program_id" unsigned="false" nullable="false" identity="false"
+        <column xsi:type="int" name="program_id" nullable="false" identity="false"
                 comment="Program ID"/>
         <column xsi:type="varchar" name="customer_email" nullable="true" length="255"
                 comment="Customer Email"/>
