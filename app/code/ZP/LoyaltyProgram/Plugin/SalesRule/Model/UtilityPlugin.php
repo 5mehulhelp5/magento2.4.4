@@ -297,7 +297,7 @@ class UtilityPlugin
      * @throws \Exception
      */
     private function validateLoyaltyProgram(
-        LoyaltyProgram $customerProgram,
+        ?LoyaltyProgram $customerProgram,
         int $groupId,
         int $websiteId,
         Rule $rule
@@ -322,15 +322,11 @@ class UtilityPlugin
 
     private function compareConditionData(string $fieldType ,$ruleData, $customerData, $programData = null): bool
     {
-        switch ($fieldType) {
-            case self::CUSTOMER_GROUP_IDS :
-                return $this->compareGroups($customerData, $ruleData, $programData);
-            case self::WEBSITE_IDS :
-                return $this->compareWebsites($customerData, $programData, $ruleData);
-            case self::LOYALTY_PROGRAM_IDS :
-                return $this->compareLoyaltyPrograms($customerData, $ruleData);
-            default:
-                return false;
-        }
+        return match ($fieldType) {
+            self::CUSTOMER_GROUP_IDS => $this->compareGroups($customerData, $ruleData, $programData),
+            self::WEBSITE_IDS => $this->compareWebsites($customerData, $programData, $ruleData),
+            self::LOYALTY_PROGRAM_IDS => $this->compareLoyaltyPrograms($customerData, $ruleData),
+            default => false
+        };
     }
 }

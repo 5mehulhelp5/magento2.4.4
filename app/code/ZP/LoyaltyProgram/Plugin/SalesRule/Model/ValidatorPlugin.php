@@ -38,43 +38,71 @@ class ValidatorPlugin
     public function afterGetRules(Validator $subject, RuleCollection $ruleCollection)
     {
        if ($ruleCollection->getSize()) {
-           if(!$this->programScopeConfig->isEnabled($this->storeManager->getWebsite()->getId())) {
-               /**
-                * @var int $ruleId
-                * @var Rule $rule
-                */
-               foreach ($ruleCollection->getItems() as $ruleId => $rule) {
-                   if ($rule->getData(RuleConfig::IS_LOYALTY_RULE)) {
-                       $ruleCollection->removeItemByKey($ruleId);
-                   }
-               }
-           } else {
-               /** @var Rule $rule */
-               foreach ($ruleCollection->getItems() as $rule) {
-                   if ($rule->getData(RuleConfig::IS_LOYALTY_RULE)) {
-                       $this->ruleNeedToUpdate = false;
-                       $ruleProgramIds = $rule->getData(RuleConfig::LOYALTY_PROGRAM_IDS);
-                       $ruleProgramIds = $this->dataValidator->validateMultiselectFieldIntData(
-                           $ruleProgramIds, RuleConfig::LOYALTY_PROGRAM_IDS, 'SalesRule'
-                       );
-
-                       if ($ruleProgramIds) {
-                           $ruleProgramIds = $this->checkLoyaltyPrograms($this->prepareData->makeArrayKeysLikeValues($ruleProgramIds));
-                           if ($this->ruleNeedToUpdate) {
-                               $rule->setData(
-                                   RuleConfig::LOYALTY_PROGRAM_IDS,
-                                   $ruleProgramIds ? implode(',', $ruleProgramIds) : null
-                               );
-
-                               $this->ruleResource->save($rule);
-                           }
-                       }
-                   }
-               }
-           }
+           $this->processRules($ruleCollection);
        }
 
         return $ruleCollection;
+    }
+
+    /**
+     * @param RuleCollection $collection
+     * @throws LocalizedException
+     * @throws \Exception
+     */
+    private function processRules(RuleCollection $collection): void
+    {
+        if($this->isProgramEnabled()) {
+            /** @var Rule $rule */
+            foreach ($collection->getItems() as $rule) {
+                $this->processRule($rule);
+            }
+        } else {
+            /**
+             * @var int $ruleId
+             * @var Rule $rule
+             */
+            foreach ($collection->getItems() as $ruleId => $rule) {
+                if ($rule->getData(RuleConfig::IS_LOYALTY_RULE)) {
+                    $collection->removeItemByKey($ruleId);
+                }
+            }
+        }
+    }
+
+    /**
+     * @return bool
+     * @throws LocalizedException
+     */
+    private function isProgramEnabled(): bool
+    {
+        return $this->programScopeConfig->isEnabled((int)$this->storeManager->getWebsite()->getId());
+    }
+
+    /**
+     * @param Rule $rule
+     * @throws \Exception
+     */
+    private function processRule(Rule $rule): void
+    {
+        if ($rule->getData(RuleConfig::IS_LOYALTY_RULE)) {
+            $this->ruleNeedToUpdate = false;
+            $ruleProgramIds = $rule->getData(RuleConfig::LOYALTY_PROGRAM_IDS);
+            $ruleProgramIds = $this->dataValidator->validateMultiselectFieldIntData(
+                $ruleProgramIds, RuleConfig::LOYALTY_PROGRAM_IDS, 'SalesRule'
+            );
+
+            if ($ruleProgramIds) {
+                $ruleProgramIds = $this->checkLoyaltyPrograms($this->prepareData->makeArrayKeysLikeValues($ruleProgramIds));
+                if ($this->ruleNeedToUpdate) {
+                    $rule->setData(
+                        RuleConfig::LOYALTY_PROGRAM_IDS,
+                        $ruleProgramIds ? implode(',', $ruleProgramIds) : null
+                    );
+
+                    $this->ruleResource->save($rule);
+                }
+            }
+        }
     }
 
     private function checkLoyaltyPrograms(array $ruleProgramIds): array

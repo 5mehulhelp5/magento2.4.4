@@ -100,20 +100,12 @@ abstract class ReferenceProgramOptions implements OptionSourceInterface
      */
     protected function getDefaultOption(string $type): array
     {
-        $label = '';
-        switch ($type) {
-            case self::REMOVE_OPTION :
-                $label = '-- Remove Program --';
-                break;
-            case self::PLEASE_OPTION :
-                $label = '-- Please Select --';
-                break;
-            case self::EMPTY_OPTION :
-                $label = '--Nothing To Select';
-                break;
-            default:
-                throw new \Exception('Unknown option type : ' . '\'' . $type . '\'!');
-        }
+        $label = match ($type) {
+            self::REMOVE_OPTION => '-- Remove Program --',
+            self::PLEASE_OPTION => '-- Please Select --',
+            self::EMPTY_OPTION => '--Nothing To Select',
+            default => throw new \Exception('Unknown option type : ' . '\'' . $type . '\'!')
+        };
 
         return ['label' => __($label), 'value' => ''];
     }

@@ -16,6 +16,7 @@ use ZP\LoyaltyProgram\Api\LoyaltyProgramManagementInterface;
 use ZP\LoyaltyProgram\Model\Prepare\Data\DataPreparer;
 use ZP\LoyaltyProgram\Model\Validators\Data\Validator;
 use ZP\LoyaltyProgram\Model\MessageManager\Console\Command\Customer\AssignLoyaltyProgram\MessageManager;
+use Magento\Framework\Console\Cli;
 
 class AssignLoyaltyProgram extends Command
 {
@@ -56,38 +57,39 @@ class AssignLoyaltyProgram extends Command
     public function execute(InputInterface $input, OutputInterface $output)
     {
         try {
+            $result = Cli::RETURN_SUCCESS;
             $customerIds = $this->validateCustomerIds($this->getCustomerIds($input));
             if (
                 !$this->isAllCustomers() && !$customerIds &&
                 !$this->messageManager->isResultTypeEmpty(MessageManager::WRONG_DATA)
             ) {
-                $output->writeln($this->messageManager->getResultMessage(MessageManager::WRONG_DATA));
-
-                return 1;
+                $result = Cli::RETURN_FAILURE;
             }
 
-            /** @var CustomerInterface[] $customers */
-            $customers = $this->getCustomers($customerIds);
-            if (!$this->compareCustomersCount($customers, $customerIds) && !$customers) {
-                if ($this->messageManager->isResultTypeEmpty(MessageManager::NOT_EXIST)) {
-                    $output->writeln('We don\'t have any customers at the moment!');
+            if ($this->isResultSuccess($result)) {
+                /** @var CustomerInterface[] $customers */
+                $customers = $this->getCustomers($customerIds);
+                if (!$this->compareCustomersCount($customers, $customerIds) && !$customers) {
+                    $result = Cli::RETURN_FAILURE;
+                    if ($this->messageManager->isResultTypeEmpty(MessageManager::NOT_EXIST)) {
+                        $output->writeln('We don\'t have any customers at the moment!');
 
-                    return 1;
+                        return $result;
+                    }
                 }
 
-                $output->writeln($this->messageManager->getResultMessage());
-
-                return 1;
+                if ($this->isResultSuccess($result)) {
+                    $this->assignLoyaltyProgramsToCustomers($customers);
+                }
             }
 
-            $this->assignLoyaltyProgramsToCustomers($customers);
             $output->writeln($this->messageManager->getResultMessage());
 
-            return 0;
+            return $result;
         } catch (\Exception $exception) {
             $output->writeln($exception->getMessage());
 
-            return 1;
+            return Cli::RETURN_FAILURE;
         }
     }
 
@@ -196,5 +198,10 @@ class AssignLoyaltyProgram extends Command
     private function setIsAllCustomersProperty(bool $value): void
     {
         $this->isAllCustomers = $value;
+    }
+
+    private function isResultSuccess(int $result): bool
+    {
+        return $result === Cli::RETURN_SUCCESS;
     }
 }

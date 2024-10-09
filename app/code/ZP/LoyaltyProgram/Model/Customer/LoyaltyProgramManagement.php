@@ -24,8 +24,6 @@ use ZP\LoyaltyProgram\Model\MessageManager\Customer\LoyaltyProgramManagement\Mes
 
 class LoyaltyProgramManagement implements LoyaltyProgramManagementInterface
 {
-    private const WEBSITE_ID = 'website_id';
-    private const CUSTOMER_GROUP_ID = 'customer_group_id';
     private string $result;
     private int $customerId;
     private int $customerWebsiteId;
@@ -243,11 +241,7 @@ class LoyaltyProgramManagement implements LoyaltyProgramManagementInterface
             }
         }
 
-        if ($this->programToAssign) {
-            return true;
-        }
-
-        return false;
+        return (bool)$this->programToAssign;
     }
 
     /**

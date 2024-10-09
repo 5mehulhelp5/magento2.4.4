@@ -62,7 +62,7 @@ class MassStatus extends Controller
             /** @var Collection $collection */
             $collection = $this->filter->getCollection($this->collectionFactory->create());
             if (!$collection->getSize()) {
-                $this->messageManager->addNoticeMessage('Selected program(s) has(have) been probably deleted!');
+                $this->messageManager->addNoticeMessage('Program(s) with specified ids don\'t exist.');
             } else {
                 $this->setActiveStatusFromRequest();
 

@@ -67,7 +67,7 @@ class MassDelete extends Controller
 
             if (!$collection->getSize()) {
                 $this->messageManager->addNoticeMessage(
-                    __('Selected program(s) has(have) been probably deleted already!')
+                    __('Program(s) with specified ids don\'t exist.')
                 );
             } else {
                 $this->validateCollectionPrograms($collection);

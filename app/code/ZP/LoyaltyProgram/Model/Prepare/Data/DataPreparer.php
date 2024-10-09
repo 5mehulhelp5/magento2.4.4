@@ -56,9 +56,7 @@ class DataPreparer
     {
         $data = [];
         foreach ($grandArray as $array) {
-            foreach ($array as $key => $value) {
-                $data[$key] = $value;
-            }
+            $data += $array;
         }
 
         return $data;

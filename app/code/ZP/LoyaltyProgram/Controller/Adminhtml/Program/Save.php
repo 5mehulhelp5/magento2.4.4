@@ -100,7 +100,7 @@ class Save extends Controller
                 return $resultRedirect->setPath('*/*/edit', [LoyaltyProgram::PROGRAM_ID => $this->programId]);
             }
         } catch (NoSuchEntityException $exception) {
-            $this->messageManager->addNoticeMessage(__('This Program no longer exists or didn\'t exist at all!'));
+            $this->messageManager->addNoticeMessage(__('This Program no longer exists!'));
             $this->logger->notice(__($exception->getMessage()));
         } catch (LocalizedException $exception) {
             $this->messageManager->addErrorMessage($exception->getMessage());
@@ -157,34 +157,9 @@ class Save extends Controller
         }
         unset($exceptionArray);
 
-        $emptyDataFields = $this->checkNotNullableFieldsData($data, $this->programFormConfig->getNotNullableFields());
-        if ($emptyDataFields) {
-            throw new \Exception(
-                'Data of this Loyalty Program form fields have been lost : ' .
-                implode(',', $emptyDataFields) . ' !'
-            );
-        }
-
-        $wrongStringFieldsData = $this->checkStringFieldsData($data, $this->programFormConfig->getFormStringFields());
-        if ($wrongStringFieldsData) {
-            throw new \Exception(
-                'Data of this Loyalty Program form fields : ' . implode(',', $wrongStringFieldsData) .
-                ' must be string! Not numeric!'
-            );
-        }
-
-        $wrongIntegerFieldsData = $this->checkIntegerFieldsData(
-            $data, $this->programFormConfig->getFormIntegerFields($this->programId)
-        );
-        if ($wrongIntegerFieldsData) {
-            throw new \Exception(
-                'Data of this Loyalty Program form fields : ' . implode(',', $wrongIntegerFieldsData) .
-                '. It must be an integer in string like \'1\', ' .
-                'or in case of multiselect form field it must be an array values integer in string, ' .
-                'or if it is allowed to be empty it must be empty string like \'\'!'
-
-            );
-        }
+        $this->checkNotNullableFieldsData($data, $this->programFormConfig->getNotNullableFields());
+        $this->checkStringFieldsData($data, $this->programFormConfig->getFormStringFields());
+        $this->checkIntegerFieldsData($data, $this->programFormConfig->getFormIntegerFields($this->programId));
 
         foreach ($data as $field => $value) {
             if ($value === '') {
@@ -196,10 +171,9 @@ class Save extends Controller
     /**
      * @param array $data
      * @param array $notNullableFields
-     * @return array
      * @throws \Exception
      */
-    private function checkNotNullableFieldsData(array &$data, array $notNullableFields): array
+    private function checkNotNullableFieldsData(array &$data, array $notNullableFields): void
     {
         $emptyDataFields = [];
         foreach ($notNullableFields as $field) {
@@ -221,10 +195,20 @@ class Save extends Controller
             $emptyDataFields[] = $field;
         }
 
-        return $emptyDataFields;
+        if ($emptyDataFields) {
+            throw new \Exception(
+                'Data of this Loyalty Program form fields have been lost : ' .
+                implode(',', $emptyDataFields) . ' !'
+            );
+        }
     }
 
-    public function checkStringFieldsData(array &$data, array $stringFields): array
+    /**
+     * @param array $data
+     * @param array $stringFields
+     * @throws \Exception
+     */
+    public function checkStringFieldsData(array &$data, array $stringFields): void
     {
         $wrongDataFields = [];
         foreach ($stringFields as $field) {
@@ -239,7 +223,12 @@ class Save extends Controller
             }
         }
 
-        return $wrongDataFields;
+        if ($wrongDataFields) {
+            throw new \Exception(
+                'Data of this Loyalty Program form fields : ' . implode(',', $wrongDataFields) .
+                ' must be string! Not numeric!'
+            );
+        }
     }
 
     private function isDataString(string $data): bool
@@ -252,57 +241,91 @@ class Save extends Controller
     /**
      * @param array $data
      * @param array $integerFields
-     * @return array
      * @throws \Exception
      */
-    public function checkIntegerFieldsData(array &$data, array $integerFields): array
+    public function checkIntegerFieldsData(array &$data, array $integerFields): void
     {
         $wrongDataFields = [];
+
         foreach ($integerFields as $field) {
-            if (!array_key_exists($field, $data)) {
-                $this->logger->notice("'$field'" . ' hase been lost with data!');
-            } else {
-                if (!$this->programFormConfig->isSelectingTypeField($field)) {
-                    if ($data[$field] === '' || $this->dataValidator->isDataInteger($data[$field])) {
-                        continue;
-                    }
-                } else {
-                    $selectType = $this->programFormConfig->getFieldSelectType($field);
-                    if ($selectType === ProgramFormConfig::SELECT) {
-                        if ($data[$field] === '' || $this->dataValidator->isDataInteger($data[$field])) {
-                            continue;
-                        }
-                    } else {
-                        if ($data[$field] === '' || is_array($data[$field])) {
-                            if (is_array($data[$field])) {
-                                $wrongMultiSelectData = 'Multiselect Field \'' . $field . '\' : ';
-                                $checkString = $wrongMultiSelectData;
-                                $multiSelectCounter = 1;
-                                $multiSelectCount = count($data[$field]);
-                                foreach ($data[$field] as $key => $value) {
-                                    if (!$this->dataValidator->isDataInteger($value)) {
-                                        $end = $multiSelectCounter === $multiSelectCount ? '.' : ', ';
-                                        $wrongMultiSelectData .= "$key(key) => '$value'(value)" . $end;
-                                    }
-
-                                    $multiSelectCounter++;
-                                }
-
-                                if ($wrongMultiSelectData !== $checkString) {
-                                    $wrongDataFields[] = $wrongMultiSelectData;
-                                }
-                            }
-
-                            continue;
-                        }
-                    }
-                }
-
+            if (!$this->isFieldValid($field, $data, $wrongDataFields)) {
                 $wrongDataFields[] = $field;
             }
         }
 
-        return $wrongDataFields;
+        if ($wrongDataFields) {
+            throw new \Exception(
+                'Data of this Loyalty Program form fields : ' . implode(',', $wrongDataFields) .
+                ' must be an integer in string like \'1\'.' .
+                ' But in case of multiselect form field it must be an array values of integers in string, ' .
+                'or if it is allowed to be empty it must be empty string like \'\'!'
+
+            );
+        }
+    }
+
+    /**
+     * @param string $field
+     * @param array $data
+     * @param array $wrongDataFields
+     * @return bool
+     * @throws \Exception
+     */
+    private function isFieldValid(string $field, array &$data, array &$wrongDataFields): bool
+    {
+        if (!array_key_exists($field, $data)) {
+            $this->logger->notice("'$field' has been lost with data!");
+            return false;
+        }
+
+        if ($this->programFormConfig->isSelectingTypeField($field)) {
+            return $this->validateSelectField($field, $data[$field], $wrongDataFields);
+        }
+
+        return $data[$field] === '' || $this->dataValidator->isDataInteger($data[$field]);
+    }
+
+    /**
+     * @param string $field
+     * @param string|array $value
+     * @param array $wrongDataFields
+     * @return bool
+     * @throws \Exception
+     */
+    private function validateSelectField(string $field, string|array $value, array &$wrongDataFields): bool
+    {
+        if ($value === '') {
+            return true;
+        }
+
+        $selectType = $this->programFormConfig->getFieldSelectType($field);
+        if ($selectType === ProgramFormConfig::SELECT) {
+            return $this->dataValidator->isDataInteger($value);
+        }
+
+        if (is_array($value)) {
+            return $this->validateMultiSelectField($field, $value, $wrongDataFields);
+        }
+
+        return false;
+    }
+
+    private function validateMultiSelectField(string $field, array $values, array &$wrongDataFields): bool
+    {
+        $wrongMultiSelectData = "Multiselect Field '$field' : ";
+        $initialString = $wrongMultiSelectData;
+
+        foreach ($values as $key => $value) {
+            if (!$this->dataValidator->isDataInteger($value)) {
+                $wrongMultiSelectData .= "$key(key) => '$value'(value), ";
+            }
+        }
+
+        if ($wrongMultiSelectData !== $initialString) {
+            $wrongDataFields[] = rtrim($wrongMultiSelectData, ', ') . '.';
+        }
+
+        return true;
     }
 
     private function prepareDataToSave(array &$data): void

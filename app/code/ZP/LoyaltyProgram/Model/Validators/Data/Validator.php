@@ -36,45 +36,42 @@ class Validator implements ValidatorInterface
         return !$matches;
     }
 
+    /**
+     * @param int|string|array|null $data
+     * @param string $fieldName
+     * @param string $entityName
+     * @return array
+     * @throws \Exception
+     */
     public function validateMultiselectFieldIntData(
         int|string|array|null $data,
         string $fieldName,
         string $entityName
     ): array {
+        if (empty($data)) {
+            return [];
+        }
+
+        $data = is_string($data) ? explode(',', $data) : (array)$data;
+
+        if (count($data) === 1) {
+            $data = explode(',', array_shift($data));
+        }
+
         $result = [];
-        if ($data === null || $data === '' || (is_array($data) && !$data)) {
-            return $result;
-        }
 
-        if ($this->isDataInteger($data)) {
-            $result[] = (int)$data;
-
-            return $result;
-        }
-
-        if (is_string($data) || is_array($data)) {
-            if (is_string($data)) {
-                $data = explode(',', $data);
-            } elseif (is_array($data)) {
-                if (count($data) === 1) {
-                    $data = explode(',', array_shift($data));
-                }
+        foreach ($data as $value) {
+            if (!$this->isDataInteger($value)) {
+                $value = $this->getExceptionValues($value);
+                throw new \Exception(
+                    "Wrong field '$fieldName' data of $entityName entity! You received value: '$value'!"
+                );
             }
 
-            foreach ($data as $key => $value) {
-                if (!$this->isDataInteger($value)) {
-                    $value = $this->getExceptionValues($value);
-                    throw new \Exception(
-                        'Wrong field \'' . $fieldName . '\' data of ' . $entityName . ' entity!' .
-                        'You received $value : \'' . $value . '\' !'
-                    );
-                }
-
-                $data[$key] = (int)$value;
-            }
+            $result[] = (int)$value;
         }
 
-        return $data;
+        return $result;
     }
 
     /**

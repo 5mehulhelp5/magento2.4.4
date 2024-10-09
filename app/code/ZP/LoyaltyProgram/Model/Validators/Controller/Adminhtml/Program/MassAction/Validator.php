@@ -45,22 +45,13 @@ class Validator extends BaseValidator implements ValidatorInterface
      */
     public function checkProgramIds(array $programIds, string $actionType): void
     {
-        if (array_key_exists(BasicProgramsConfig::PROGRAM_MIN, $programIds)) {
-            unset($programIds[BasicProgramsConfig::PROGRAM_MIN]);
-        }
-
-        if (array_key_exists(BasicProgramsConfig::PROGRAM_MAX, $programIds)) {
-            unset($programIds[BasicProgramsConfig::PROGRAM_MAX]);
-        }
+        unset($programIds[BasicProgramsConfig::PROGRAM_MIN], $programIds[BasicProgramsConfig::PROGRAM_MAX]);
 
         if (!$programIds) {
-            switch ($actionType) {
-                case 'delete' :
-                case 'edit' :
-                    break;
-                default :
-                    throw new \Exception('Unknown $actionType: \'' . $actionType . '\'!');
-            }
+            match ($actionType) {
+                'delete', 'edit' => null,
+                default => throw new \Exception('Unknown $actionType: \'' . $actionType . '\'!'),
+            };
 
             throw new \Exception(
                 'Someone tried to ' . $actionType . ' only Basic Programs, which are forbidden to ' .

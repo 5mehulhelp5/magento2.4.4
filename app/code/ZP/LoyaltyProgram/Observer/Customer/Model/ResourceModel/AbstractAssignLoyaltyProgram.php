@@ -27,42 +27,64 @@ abstract class AbstractAssignLoyaltyProgram
 
     /**
      * @param Observer $observer
-     * @throws LocalizedException
      * @throws \Exception
      */
     public function execute(Observer $observer)
     {
-        if ($this->programScopeConfig->isEnabled((int)$this->storeManager->getWebsite()->getId())) {
-            $customer = $this->getCustomer($observer);
-            /** @var Customer $customer */
-            $customerId = $customer->getId();
-            if ($customerId !== null) {
-                if (!$this->dataValidator->isDataInteger($customerId)) {
-                    throw new \Exception('Wrong data type of customer_id!');
-                }
-                $customerExtension = $customer->getExtensionAttributes();
-                $customerExtension = $customerExtension ?: $this->customerExtensionFactory->create();
-                $customerProgramId = $customerExtension->getLoyaltyProgramId();
-                if ($customerProgramId !== null) {
-                    if (!$this->dataValidator->isDataInteger($customerProgramId)) {
-                        throw new \Exception('Wrong data type of customer extension attribute `loyalty_program_id`!');
-                    }
+        if ($this->isProgramEnabled()) {
+            $this->processCustomer($this->getCustomer($observer));
+        }
+    }
 
-                    $customerProgram = null;
-                    if ($customerProgramId) {
-                        try {
-                            $customerProgram = $this->loyaltyProgramRepository->get((int)$customerProgramId);
-                        } catch (NoSuchEntityException $exception) {
-                            //do nothing
-                        }
+    /**
+     * @return bool
+     * @throws LocalizedException
+     */
+    private function isProgramEnabled(): bool
+    {
+        return $this->programScopeConfig->isEnabled((int)$this->storeManager->getWebsite()->getId());
+    }
 
-                    }
+    /**
+     * @param Customer $customer
+     * @throws \Exception
+     */
+    private function processCustomer(Customer $customer): void
+    {
+        $customerId = $customer->getId();
 
-                    if (!$customerProgram || !$customerProgram->getIsActive()) {
-                        $this->loyaltyProgramManagement->assignLoyaltyProgram($customer);
-                    }
-                }
-            }
+        if ($customerId === null || !$this->dataValidator->isDataInteger($customerId)) {
+            throw new \Exception('Wrong data type of customer_id!');
+        }
+
+        $customerProgramId = $this->getCustomerLoyaltyProgramId($customer);
+
+        if ($customerProgramId !== null && $this->dataValidator->isDataInteger($customerProgramId)) {
+            $this->handleLoyaltyProgram($customer, (int)$customerProgramId);
+        }
+    }
+
+    private function getCustomerLoyaltyProgramId(Customer $customer): ?int
+    {
+        $customerExtension = $customer->getExtensionAttributes() ?: $this->customerExtensionFactory->create();
+        return $customerExtension->getLoyaltyProgramId();
+    }
+
+    /**
+     * @param Customer $customer
+     * @param int $customerProgramId
+     * @throws \Exception
+     */
+    private function handleLoyaltyProgram(Customer $customer, int $customerProgramId): void
+    {
+        try {
+            $customerProgram = $this->loyaltyProgramRepository->get($customerProgramId);
+        } catch (NoSuchEntityException $exception) {
+            return; // Do nothing if the program does not exist
+        }
+
+        if (!$customerProgram || !$customerProgram->getIsActive()) {
+            $this->loyaltyProgramManagement->assignLoyaltyProgram($customer);
         }
     }
 
