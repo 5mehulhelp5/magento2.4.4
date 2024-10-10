@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace ZP\LoyaltyProgram\Model\Controller\Adminhtml\Program;
+namespace ZP\LoyaltyProgram\Model\Model\ResourceModel\LoyaltyProgram;
 
 use Magento\SalesRule\Model\Rule;
 use ZP\LoyaltyProgram\Model\Prepare\Data\DataPreparer;
@@ -13,7 +13,7 @@ class SalesRuleProgramsManagement
 {
     private RuleCollection $ruleCollection;
     private int $rulesCount = 0;
-    private array $programIdsToDelete = [];
+    private ?int $programIdToDelete = null;
 
     public function __construct(
         private DataPreparer $prepareData,
@@ -21,32 +21,23 @@ class SalesRuleProgramsManagement
     ) {}
 
     /**
-     * @param array $programIds
+     * @param int $programId
      */
-    public function collectRules(array $programIds): void
+    public function collectRules(int $programId): void
     {
-        $this->programIdsToDelete = $this->prepareData->arrayValuesToInteger($programIds);
+        $this->programIdToDelete = $programId;
         $this->ruleCollection = $this->getRuleCollection();
         $this->rulesCount = $this->ruleCollection->getSize();
     }
 
-    public function deleteProgramsFromSalesRules(): void
+    public function deleteProgramFromSalesRules(): void
     {
         /**@var Rule $rule */
         foreach ($this->ruleCollection as $rule) {
             $ruleProgramIds = $this->getRuleProgramIds($rule);
-            if ($ruleProgramIds) {
-                $counter = 0;
-                foreach ($this->programIdsToDelete as $programId) {
-                    if (array_key_exists($programId, $ruleProgramIds)) {
-                        unset($ruleProgramIds[$programId]);
-                        $counter++;
-                    }
-                }
-
-                $ruleProgramIds = $ruleProgramIds ? implode(',', $ruleProgramIds) : null;
-                $rule->setData(SalesRuleLoyaltyProgramsConfig::LOYALTY_PROGRAM_IDS, $ruleProgramIds);
-            }
+            unset($ruleProgramIds[$this->programIdToDelete]);
+            $ruleProgramIds = $ruleProgramIds ? implode(',', $ruleProgramIds) : null;
+            $rule->setData(SalesRuleLoyaltyProgramsConfig::LOYALTY_PROGRAM_IDS, $ruleProgramIds);
         }
 
         $this->ruleCollection->save();
@@ -62,10 +53,7 @@ class SalesRuleProgramsManagement
      */
     private function getRuleCollection(): RuleCollection
     {
-        $condition = [];
-        foreach ($this->programIdsToDelete as $programId) {
-            $condition[] = ['like' => '%'.$programId.'%'];
-        }
+        $condition[] = ['like' => '%'.$this->programIdToDelete.'%'];
 
         return $this->ruleCollectionFactory->create()
             ->addFieldToFilter(

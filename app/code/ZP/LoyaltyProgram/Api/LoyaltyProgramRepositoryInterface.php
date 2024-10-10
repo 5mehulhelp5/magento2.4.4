@@ -8,6 +8,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\CouldNotDeleteException;
 use ZP\LoyaltyProgram\Api\Data\LoyaltyProgramSearchResultsInterface;
 use Magento\Framework\Api\SearchCriteriaInterface;
+use ZP\LoyaltyProgram\Model\ResourceModel\LoyaltyProgram;
 
 interface LoyaltyProgramRepositoryInterface
 {
@@ -46,4 +47,9 @@ interface LoyaltyProgramRepositoryInterface
      * @return LoyaltyProgramSearchResultsInterface
      */
     public function getList(SearchCriteriaInterface $searchCriteria): LoyaltyProgramSearchResultsInterface;
+
+    /**
+     * @return LoyaltyProgram
+     */
+    public function getResourceModel(): LoyaltyProgram;
 }

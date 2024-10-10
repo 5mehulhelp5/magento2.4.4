@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace ZP\LoyaltyProgram\Controller\Adminhtml\Program;
 
 use Magento\Backend\App\Action\Context;
+use Magento\Backend\Model\View\Result\Redirect;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Psr\Log\LoggerInterface;
 use ZP\LoyaltyProgram\Api\LoyaltyProgramRepositoryInterface;
@@ -14,23 +15,20 @@ use Magento\Framework\Exception\LocalizedException;
 use ZP\LoyaltyProgram\Controller\Adminhtml\Program\AbstractControllers\HttpPostActionInterface\SaveAndDelete\Controller;
 use Magento\Framework\Controller\ResultInterface;
 use ZP\LoyaltyProgram\Setup\Patch\Data\AddBasicPrograms as BasicProgramsConfig;
-use ZP\LoyaltyProgram\Model\Controller\Adminhtml\Program\CustomerProgramManagement;
 use ZP\LoyaltyProgram\Model\Configs\Program\Form\Config as ProgramFormConfig;
-use ZP\LoyaltyProgram\Model\Controller\Adminhtml\Program\Helper;
 use ZP\LoyaltyProgram\Api\Model\Validators\Controller\Adminhtml\Program\ValidatorInterface;
 
 class Save extends Controller
 {
     public const BASIC_PROGRAM_ERR = ' EDIT ';
-
     private bool $isActiveStatusUpdatedToDisable = false;
+    private LoyaltyProgram $program;
+    private ?LoyaltyProgram $programBeforeSave = null;
 
     public function __construct(
         Context $context,
         LoggerInterface $logger,
         LoyaltyProgramRepositoryInterface $programRepository,
-        CustomerProgramManagement $customerProgramManagement,
-        Helper $helper,
         ValidatorInterface $dataValidator,
         RequestHelper $requestHelper,
         private LoyaltyProgramFactory $programFactory,
@@ -40,8 +38,6 @@ class Save extends Controller
             $context,
             $logger,
             $programRepository,
-            $customerProgramManagement,
-            $helper,
             $dataValidator,
             $requestHelper
         );
@@ -54,7 +50,7 @@ class Save extends Controller
     public function execute(): ResultInterface
     {
         try {
-            /** @var \Magento\Backend\Model\View\Result\Redirect $resultRedirect */
+            /** @var Redirect $resultRedirect */
             $resultRedirect = $this->resultRedirectFactory->create();
             $data = $this->getRequest()->getPostValue();
             $programId = $this->requestHelper->getProgramIdFromRequest($this->getRequest());
@@ -62,43 +58,24 @@ class Save extends Controller
             $this->validateProgramId($programId);
             $this->isBasicProgram();
             $this->checkPostData($data);
-            if ($this->programId !== null) {
-                $program = $this->programRepository->get($this->programId);
-                $programBeforeSave = $this->programRepository->get($this->programId);
-            } else {
-                $program = $this->programFactory->create();
-                $programBeforeSave = null;
-            }
-
-            /** @var LoyaltyProgram $program */
-            /** @var LoyaltyProgram|null $programBeforeSave */
+            $this->setProgram();
             $this->prepareDataToSave($data);
-            $program->setData($data);
-            if ($programBeforeSave && $this->isSameProgramsData($program->getData(), $programBeforeSave->getData())) {
+            $this->program->setData($data);
+            if (
+                $this->programBeforeSave &&
+                $this->isSameProgramsData($this->program->getData(), $this->programBeforeSave->getData())
+            ) {
                 $this->messageManager->addNoticeMessage(__('You did\'t change any data!'));
             } else {
-                if ($this->isActiveStatusUpdatedToDisable()) {
-                    $this->beforeSave();
-                }
-
-                $this->programRepository->save($program);
-
-                if ($this->isActiveStatusUpdatedToDisable()) {
-                    $this->afterSave();
-                }
-
-                $this->programName = $program->getProgramName();
-
+                $this->programRepository->getResourceModel()->setIsActiveStatusUpdatedToDisable(
+                    $this->isActiveStatusUpdatedToDisable()
+                );
+                $this->programRepository->save($this->program);
+                $this->programName = $this->program->getProgramName();
                 $this->addMessages();
             }
 
-            if ($this->programId === null) {
-                $this->programId = (int)$program->getId();
-            }
-
-            if ($this->getRequest()->getParam('back')) {
-                return $resultRedirect->setPath('*/*/edit', [LoyaltyProgram::PROGRAM_ID => $this->programId]);
-            }
+            return $this->getRedirectPath($resultRedirect);
         } catch (NoSuchEntityException $exception) {
             $this->messageManager->addNoticeMessage(__('This Program no longer exists!'));
             $this->logger->notice(__($exception->getMessage()));
@@ -108,6 +85,32 @@ class Save extends Controller
         } catch (\Exception $exception) {
             $this->messageManager->addErrorMessage(__('Sorry, something went wrong while trying to save program!'));
             $this->logger->error(__($exception->getMessage()));
+        }
+
+        return $resultRedirect->setPath('*/*/');
+    }
+
+    /**
+     * @throws NoSuchEntityException
+     */
+    public function setProgram(): void
+    {
+        if ($this->programId !== null) {
+            $this->program = $this->programRepository->get($this->programId);
+            $this->programBeforeSave = $this->programRepository->get($this->programId);
+        } else {
+            $this->program = $this->programFactory->create();
+        }
+    }
+
+    public function getRedirectPath(ResultInterface $resultRedirect): ?ResultInterface
+    {
+        if ($this->programId === null) {
+            $this->programId = (int)$this->program->getId();
+        }
+
+        if ($this->getRequest()->getParam('back')) {
+            return $resultRedirect->setPath('*/*/edit', [LoyaltyProgram::PROGRAM_ID => $this->programId]);
         }
 
         return $resultRedirect->setPath('*/*/');
@@ -411,19 +414,6 @@ class Save extends Controller
     private function isActiveStatusUpdatedToDisable(): bool
     {
         return $this->isActiveStatusUpdatedToDisable;
-    }
-
-    private function beforeSave(): void
-    {
-        $this->beforeAction();
-    }
-
-    /**
-     * @throws \Exception
-     */
-    private function afterSave(): void
-    {
-        $this->afterAction();
     }
 
     protected function addMessages(): void

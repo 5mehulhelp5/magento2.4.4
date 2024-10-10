@@ -107,4 +107,9 @@ class LoyaltyProgramRepository implements LoyaltyProgramRepositoryInterface
 
         return $searchResult;
     }
+
+    public function getResourceModel(): LoyaltyProgramResource
+    {
+        return $this->loyaltyProgramResource;
+    }
 }

@@ -9,13 +9,10 @@ use ZP\LoyaltyProgram\Api\LoyaltyProgramRepositoryInterface;
 use ZP\LoyaltyProgram\Api\Model\Controller\Adminhtml\Program\RequestHelperInterface;
 use ZP\LoyaltyProgram\Api\Model\Validators\Controller\Adminhtml\Program\ValidatorInterface;
 use ZP\LoyaltyProgram\Controller\Adminhtml\Program\AbstractControllers\HttpPostActionInterface\Controller as BaseController;
-use ZP\LoyaltyProgram\Model\Controller\Adminhtml\Program\CustomerProgramManagement;
-use ZP\LoyaltyProgram\Model\Controller\Adminhtml\Program\Helper;
 
 abstract class Controller extends BaseController
 {
     protected const BASIC_PROGRAM_ERR = '';
-
     protected ?string $programName = null;
     protected ?int $programId = null;
 
@@ -23,8 +20,6 @@ abstract class Controller extends BaseController
         Context $context,
         LoggerInterface $logger,
         LoyaltyProgramRepositoryInterface $programRepository,
-        CustomerProgramManagement $customerProgramManagement,
-        Helper $helper,
         ValidatorInterface $dataValidator,
         RequestHelperInterface $requestHelper
     ) {
@@ -32,8 +27,6 @@ abstract class Controller extends BaseController
             $context,
             $logger,
             $programRepository,
-            $customerProgramManagement,
-            $helper,
             $dataValidator,
             $requestHelper
         );
@@ -53,8 +46,6 @@ abstract class Controller extends BaseController
         if ($this->dataValidator->isBasicProgram($this->programId)) {
             throw new \Exception('BASIC PROGRAMS are forbidden to ' . $this->getBasicProgramErr() . '!');
         }
-
-        $this->programsData = [$this->programId];
     }
 
     protected function getBasicProgramErr(): string

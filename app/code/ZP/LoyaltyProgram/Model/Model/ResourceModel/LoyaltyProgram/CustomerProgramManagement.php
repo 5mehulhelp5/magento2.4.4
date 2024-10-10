@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace ZP\LoyaltyProgram\Model\Controller\Adminhtml\Program;
+namespace ZP\LoyaltyProgram\Model\Model\ResourceModel\LoyaltyProgram;
 
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\ResourceConnection;
@@ -17,7 +17,7 @@ use Magento\Customer\Api\CustomerRepositoryInterface;
 class CustomerProgramManagement
 {
     private AdapterInterface $connection;
-    private array $mergedCustomerIds = [];
+    private array $programCustomerIds = [];
     private int $countCustomers = 0;
 
     public function __construct(
@@ -30,16 +30,10 @@ class CustomerProgramManagement
         $this->connection = $resourceConnection->getConnection();
     }
 
-    public function collectCustomersFromPrograms(array $programIds): void
+    public function collectCustomersFromProgram(int $programId): void
     {
-        $programIds = $this->prepareData->arrayValuesToInteger($programIds);
-        $programCustomerIds = [];
-        foreach ($programIds as $programId) {
-            $programCustomerIds[$programId] = $this->prepareData->makeArrayValuesLikeKeys($this->selectCustomerIds($programId));
-        }
-
-        $this->mergedCustomerIds = $this->prepareData->combineArraysInsideArray($programCustomerIds);
-        $this->countCustomers = count($this->mergedCustomerIds);
+        $this->programCustomerIds = $this->prepareData->makeArrayValuesLikeKeys($this->selectCustomerIds($programId));
+        $this->countCustomers = count($this->programCustomerIds);
     }
 
     /**
@@ -47,14 +41,14 @@ class CustomerProgramManagement
      * @throws NoSuchEntityException
      * @throws \Exception
      */
-    public function reassignProgramsToCustomers(): void
+    public function reassignProgramToCustomers(): void
     {
-        if ($this->mergedCustomerIds) {
+        if ($this->programCustomerIds) {
             if ($this->countCustomers === 1) {
-                $customers[] = $this->customerRepository->getById(array_key_first($this->mergedCustomerIds));
+                $customers[] = $this->customerRepository->getById(array_key_first($this->programCustomerIds));
             } else {
                 $searchCriteria = $this->searchCriteriaBuilder
-                    ->addFilter('entity_id', $this->mergedCustomerIds, 'in')
+                    ->addFilter('entity_id', $this->programCustomerIds, 'in')
                     ->create();
                 $customers = $this->customerRepository->getList($searchCriteria)->getItems();
             }
@@ -65,10 +59,10 @@ class CustomerProgramManagement
         }
     }
 
-    public function deleteProgramsFromCustomers(): void
+    public function deleteProgramFromCustomers(): void
     {
-        if ($this->mergedCustomerIds) {
-            $customerIds = implode(',', $this->mergedCustomerIds);
+        if ($this->programCustomerIds) {
+            $customerIds = implode(',', $this->programCustomerIds);
             $this->connection->delete(
                 CustomerProgramConfig::CUSTOMER_PROGRAM_TABLE,
                 CustomerProgramConfig::CUSTOMER_ID . ' IN (' . $customerIds . ')'

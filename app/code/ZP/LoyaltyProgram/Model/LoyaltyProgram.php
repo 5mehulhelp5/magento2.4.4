@@ -8,7 +8,7 @@ use ZP\LoyaltyProgram\Api\Data\LoyaltyProgramInterface;
 use ZP\LoyaltyProgram\Model\ResourceModel\LoyaltyProgram as LoyaltyProgramResourceModel;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Registry;
-use Magento\Framework\Model\ResourceModel\AbstractResource;
+use ZP\LoyaltyProgram\Model\ResourceModel\LoyaltyProgram as LoyaltyProgramResource;
 use Magento\Framework\Data\Collection\AbstractDb;
 use ZP\LoyaltyProgram\Model\Validators\Data\Validator as DataValidator;
 
@@ -22,7 +22,7 @@ class LoyaltyProgram extends AbstractModel implements LoyaltyProgramInterface
         private DataValidator $dataValidator,
         Context $context,
         Registry $registry,
-        AbstractResource $resource = null,
+        LoyaltyProgramResource $resource = null,
         AbstractDb $resourceCollection = null,
         array $data = []
     ) {

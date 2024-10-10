@@ -12,8 +12,6 @@ use ZP\LoyaltyProgram\Model\Controller\Adminhtml\Program\MassAction\RequestHelpe
 use ZP\LoyaltyProgram\Model\LoyaltyProgram;
 use ZP\LoyaltyProgram\Model\ResourceModel\LoyaltyProgram\CollectionFactory;
 use ZP\LoyaltyProgram\Model\ResourceModel\LoyaltyProgram\Collection;
-use ZP\LoyaltyProgram\Model\Controller\Adminhtml\Program\CustomerProgramManagement;
-use ZP\LoyaltyProgram\Model\Controller\Adminhtml\Program\Helper;
 use Psr\Log\LoggerInterface;
 use ZP\LoyaltyProgram\Model\Prepare\Data\DataPreparer;
 use ZP\LoyaltyProgram\Api\Model\Validators\Controller\Adminhtml\Program\MassAction\ValidatorInterface;
@@ -23,15 +21,16 @@ class MassStatus extends Controller
     private const EDIT = 'edit';
     public const STATUS = 'status';
     private bool $activeStatusFromRequest;
-    private int $updatedProgramsCount = 0;
+    private int $updatingProgramsCount = 0;
     private int $notUpdatedProgramsCount = 0;
+    private int $updatedProgramsCount = 0;
+    private int $updatingProgramsErrorCount = 0;
+    private array $programsStatusChangedToDisable = [];
 
     public function __construct(
         Context $context,
         LoggerInterface $logger,
         LoyaltyProgramRepositoryInterface $programRepository,
-        CustomerProgramManagement $customerProgramManagement,
-        Helper $helper,
         ValidatorInterface $dataValidator,
         RequestHelper $requestHelper,
         Filter $filter,
@@ -42,8 +41,6 @@ class MassStatus extends Controller
             $context,
             $logger,
             $programRepository,
-            $customerProgramManagement,
-            $helper,
             $dataValidator,
             $requestHelper,
             $filter,
@@ -65,23 +62,9 @@ class MassStatus extends Controller
                 $this->messageManager->addNoticeMessage('Program(s) with specified ids don\'t exist.');
             } else {
                 $this->setActiveStatusFromRequest();
-
                 $this->validateCollectionPrograms($collection);
-
-                if ($this->updatedProgramsCount) {
-                    if ($this->programsForAction) {
-                        $this->programsData = $this->programsForAction;
-                        $this->beforeSave();
-                    }
-
-                    /** @var LoyaltyProgram $program */
-                    foreach ($collection->getItems() as $program) {
-                        $this->programRepository->save($program);
-                    }
-                }
-
-                if ($this->programsForAction) {
-                    $this->afterSave();
+                if ($this->updatingProgramsCount) {
+                    $this->savePrograms($collection->getItems());
                 }
 
                 $this->addMessages();
@@ -96,12 +79,26 @@ class MassStatus extends Controller
         return $resultRedirect->setPath('*/*/');
     }
 
-    private function setActiveStatusFromRequest(): void
+    /**
+     * @param LoyaltyProgram[] $programs
+     */
+    public function savePrograms(array $programs): void
     {
-        if (array_key_exists(self::STATUS, $this->getRequest()->getParams())) {
-            $this->activeStatusFromRequest = (bool)$this->getRequest()->getParam(self::STATUS);
-        } else {
-            throw new \Exception('No status from request!!!');
+        /**
+         * @var int $programId
+         * @var LoyaltyProgram $program
+         */
+        foreach ($programs as $programId => $program) {
+            try {
+                $this->programRepository->getResourceModel()->setIsActiveStatusUpdatedToDisable(
+                    $this->programsStatusChangedToDisable[$programId]
+                );
+                $this->programRepository->save($program);
+                $this->updatedProgramsCount++;
+            } catch (\Exception $exception) {
+                $this->logger->error(__($exception->getMessage()));
+                $this->updatingProgramsErrorCount++;
+            }
         }
     }
 
@@ -122,13 +119,23 @@ class MassStatus extends Controller
                 $collection->removeItemByKey($programId);
                 $this->notUpdatedProgramsCount++;
             } else {
-                if ($this->isActiveStatusChangedToDisable($this->getActiveStatusFromRequest(), $program->getIsActive())) {
-                    $this->programsForAction[] = $programId;
-                }
+                $this->programsStatusChangedToDisable[$programId] = $this->isActiveStatusChangedToDisable(
+                    $this->getActiveStatusFromRequest(),
+                    $program->getIsActive()
+                );
 
                 $program->setIsActive($this->getActiveStatusFromRequest());
-                $this->updatedProgramsCount++;
+                $this->updatingProgramsCount++;
             }
+        }
+    }
+
+    private function setActiveStatusFromRequest(): void
+    {
+        if (array_key_exists(self::STATUS, $this->getRequest()->getParams())) {
+            $this->activeStatusFromRequest = (bool)$this->getRequest()->getParam(self::STATUS);
+        } else {
+            throw new \Exception('No status from request!!!');
         }
     }
 
@@ -147,19 +154,6 @@ class MassStatus extends Controller
         return $isCurrentStatusTrue && $isCurrentStatusTrue !== $statusFromRequest;
     }
 
-    private function beforeSave(): void
-    {
-        $this->beforeAction();
-    }
-
-    /**
-     * @throws \Exception
-     */
-    private function afterSave(): void
-    {
-        $this->afterAction();
-    }
-
     protected function addMessages(): void
     {
         if ($this->updatedProgramsCount) {
@@ -167,12 +161,21 @@ class MassStatus extends Controller
                 __('A total of %1 program(s) has(have) been updated.', $this->updatedProgramsCount)
             );
         } else {
-            $this->messageManager->addNoticeMessage(
-                __(
-                    'You have selected the same active status that is set already for %1 selected program(s)!',
-                    $this->notUpdatedProgramsCount
-                )
-            );
+            if ($this->notUpdatedProgramsCount) {
+                $this->messageManager->addNoticeMessage(
+                    __(
+                        'You have selected the same active status that is set already for %1 selected program(s)!',
+                        $this->notUpdatedProgramsCount
+                    )
+                );
+            } elseif ($this->updatingProgramsErrorCount) {
+                $this->messageManager->addErrorMessage(
+                    __(
+                        'Something went wrong during updating status for %1 selected program(s)!',
+                        $this->updatingProgramsErrorCount
+                    )
+                );
+            }
         }
 
         if ($this->basicProgramMsgStatus) {

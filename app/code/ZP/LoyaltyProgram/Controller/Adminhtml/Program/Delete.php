@@ -10,10 +10,7 @@ use ZP\LoyaltyProgram\Api\LoyaltyProgramRepositoryInterface;
 use Magento\Framework\Exception\LocalizedException;
 use ZP\LoyaltyProgram\Model\Controller\Adminhtml\Program\RequestHelper;
 use ZP\LoyaltyProgram\Controller\Adminhtml\Program\AbstractControllers\HttpPostActionInterface\SaveAndDelete\Controller;
-use ZP\LoyaltyProgram\Model\Controller\Adminhtml\Program\CustomerProgramManagement;
 use ZP\LoyaltyProgram\Model\LoyaltyProgram;
-use ZP\LoyaltyProgram\Model\Controller\Adminhtml\Program\SalesRuleProgramsManagement;
-use ZP\LoyaltyProgram\Model\Controller\Adminhtml\Program\Helper;
 use Psr\Log\LoggerInterface;
 use ZP\LoyaltyProgram\Api\Model\Validators\Controller\Adminhtml\Program\ValidatorInterface;
 
@@ -25,23 +22,16 @@ class Delete extends Controller
         Context $context,
         LoggerInterface $logger,
         LoyaltyProgramRepositoryInterface $programRepository,
-        CustomerProgramManagement $customerProgramManagement,
-        Helper $helper,
         ValidatorInterface $dataValidator,
-        RequestHelper $requestHelper,
-        SalesRuleProgramsManagement $salesRuleProgramsManagement
+        RequestHelper $requestHelper
     ) {
         parent::__construct(
             $context,
             $logger,
             $programRepository,
-            $customerProgramManagement,
-            $helper,
             $dataValidator,
             $requestHelper
         );
-
-        $this->salesRuleProgramsManagement = $salesRuleProgramsManagement;
     }
 
     public function execute()
@@ -54,13 +44,7 @@ class Delete extends Controller
             $this->isBasicProgram();
             $program = $this->programRepository->get($this->programId);
             $this->programName = $program->getProgramName();
-
-            $this->beforeDelete();
-
             $this->programRepository->delete($program);
-
-            $this->afterDelete();
-
             $this->addMessages();
         } catch (NoSuchEntityException) {
             $this->messageManager->addNoticeMessage(__('Such program does not exist already!'));
@@ -85,19 +69,6 @@ class Delete extends Controller
     protected function nullProgramIdReaction(): void
     {
         throw new \Exception('No \'' . LoyaltyProgram::PROGRAM_ID . '\' data from request string!');
-    }
-
-    private function beforeDelete(): void
-    {
-        $this->beforeAction();
-    }
-
-    /**
-     * @throws \Exception
-     */
-    private function afterDelete(): void
-    {
-        $this->afterAction();
     }
 
     protected function addMessages(): void

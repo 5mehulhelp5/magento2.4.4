@@ -13,46 +13,36 @@ use ZP\LoyaltyProgram\Model\LoyaltyProgram;
 use ZP\LoyaltyProgram\Model\ResourceModel\LoyaltyProgram\CollectionFactory;
 use ZP\LoyaltyProgram\Model\ResourceModel\LoyaltyProgram\Collection;
 use ZP\LoyaltyProgram\Controller\Adminhtml\Program\AbstractControllers\HttpPostActionInterface\MassAction\Controller;
-use ZP\LoyaltyProgram\Model\Controller\Adminhtml\Program\CustomerProgramManagement;
 use ZP\LoyaltyProgram\Model\Prepare\Data\DataPreparer;
-use ZP\LoyaltyProgram\Model\Controller\Adminhtml\Program\SalesRuleProgramsManagement;
-use ZP\LoyaltyProgram\Model\Controller\Adminhtml\Program\Helper;
 use ZP\LoyaltyProgram\Api\LoyaltyProgramRepositoryInterface;
 use ZP\LoyaltyProgram\Api\Model\Validators\Controller\Adminhtml\Program\MassAction\ValidatorInterface;
 
 class MassDelete extends Controller
 {
     private const DELETE = 'delete';
-
     private int $deletedProgramsCount = 0;
+    private int $deletingProgramsErrorCount = 0;
 
     public function __construct(
         Context $context,
         LoggerInterface $logger,
         LoyaltyProgramRepositoryInterface $programRepository,
-        CustomerProgramManagement $customerProgramManagement,
-        Helper $helper,
         ValidatorInterface $dataValidator,
         RequestHelper $requestHelper,
         Filter $filter,
         CollectionFactory $collectionFactory,
-        DataPreparer $prepareData,
-        SalesRuleProgramsManagement $salesRuleProgramsManagement
+        DataPreparer $prepareData
     ) {
         parent::__construct(
             $context,
             $logger,
             $programRepository,
-            $customerProgramManagement,
-            $helper,
             $dataValidator,
             $requestHelper,
             $filter,
             $collectionFactory,
             $prepareData
         );
-
-        $this->salesRuleProgramsManagement = $salesRuleProgramsManagement;
     }
 
     public function execute()
@@ -71,21 +61,8 @@ class MassDelete extends Controller
                 );
             } else {
                 $this->validateCollectionPrograms($collection);
-                if ($this->programsForAction) {
-                    $this->programsData = $this->programsForAction;
-                    $this->beforeDelete();
-                    $this->deletedProgramsCount = count($this->programsForAction);
-
-                    /**
-                     * @var int $programId
-                     * @var LoyaltyProgram $program
-                     */
-                    foreach ($collection->getItems() as $program) {
-                        $this->programRepository->delete($program);
-                    }
-
-                    $this->afterDelete();
-
+                if (count($collection->getItems()) !== 0) {
+                    $this->deletePrograms($collection->getItems());
                 }
 
                 $this->addMessages();
@@ -100,26 +77,24 @@ class MassDelete extends Controller
         return $resultRedirect->setPath('*/*/');
     }
 
-    protected function validateCollectionPrograms(Collection &$collection): void
-    {
-        parent::validateCollectionPrograms($collection);
-
-        foreach ($collection->getItems() as $programId => $program) {
-            $this->programsForAction[] = $programId;
-        }
-    }
-
-    private function beforeDelete(): void
-    {
-        $this->beforeAction();
-    }
-
     /**
-     * @throws \Exception
+     * @param LoyaltyProgram[] $programs
      */
-    private function afterDelete(): void
+    public function deletePrograms(array $programs): void
     {
-        $this->afterAction();
+        /**
+         * @var int $programId
+         * @var LoyaltyProgram $program
+         */
+        foreach ($programs as $program) {
+            try {
+                $this->programRepository->delete($program);
+                $this->deletedProgramsCount++;
+            } catch (\Exception $exception) {
+                $this->logger->error(__($exception->getMessage()));
+                $this->deletingProgramsErrorCount++;
+            }
+        }
     }
 
     protected function addMessages(): void
@@ -127,6 +102,13 @@ class MassDelete extends Controller
         if ($this->deletedProgramsCount) {
             $this->messageManager->addSuccessMessage(
                 __('A total of %1 program(s) has(have) been deleted.', $this->deletedProgramsCount)
+            );
+        } else {
+            $this->messageManager->addErrorMessage(
+                __(
+                    'Something went wrong during deleting of %1 selected program(s)!',
+                    $this->deletingProgramsErrorCount
+                )
             );
         }
 

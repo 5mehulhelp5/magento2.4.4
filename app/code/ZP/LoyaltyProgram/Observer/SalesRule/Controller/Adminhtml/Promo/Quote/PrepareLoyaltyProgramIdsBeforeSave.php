@@ -14,8 +14,6 @@ use ZP\LoyaltyProgram\Model\Validators\Data\Validator;
 
 class PrepareLoyaltyProgramIdsBeforeSave implements ObserverInterface
 {
-    private bool $ruleNeedToUpdate = false;
-
     public function __construct(
         private ProgramsCollectionFactory $programsCollectionFactory,
         private Validator $dataValidator,
@@ -28,7 +26,6 @@ class PrepareLoyaltyProgramIdsBeforeSave implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-        /** @var Rule $rule */
         $rule = $observer->getEvent()->getRule();
         $isLoyaltyRule = (bool)$rule->getData(SalesRuleProgramConfig::IS_LOYALTY_RULE);
         $loyaltyPrograms = $rule->getData(SalesRuleProgramConfig::LOYALTY_PROGRAM_IDS);
@@ -43,18 +40,13 @@ class PrepareLoyaltyProgramIdsBeforeSave implements ObserverInterface
                 );
 
                 $loyaltyPrograms = $this->checkLoyaltyPrograms($loyaltyPrograms);
-                if ($this->ruleNeedToUpdate) {
-                    $loyaltyPrograms = $loyaltyPrograms ? implode(',', $loyaltyPrograms) : null;
-                }
+                $loyaltyPrograms = $loyaltyPrograms ? implode(',', $loyaltyPrograms) : null;
             }
         } else {
-            $this->ruleNeedToUpdate = true;
             $loyaltyPrograms = null;
         }
 
-        if ($this->ruleNeedToUpdate) {
-            $rule->setData(SalesRuleProgramConfig::LOYALTY_PROGRAM_IDS, $loyaltyPrograms);
-        }
+        $rule->setData(SalesRuleProgramConfig::LOYALTY_PROGRAM_IDS, $loyaltyPrograms);
     }
 
     private function checkLoyaltyPrograms(array $ruleProgramIds): array
@@ -65,10 +57,6 @@ class PrepareLoyaltyProgramIdsBeforeSave implements ObserverInterface
         $validProgramIds = array_map(function($program) {
             return (int)$program->getId();
         }, $programsCollection->getItems());
-
-        if (count($validProgramIds) !== count($ruleProgramIds)) {
-            $this->ruleNeedToUpdate = true;
-        }
 
         return array_values(array_intersect($ruleProgramIds, $validProgramIds));
     }

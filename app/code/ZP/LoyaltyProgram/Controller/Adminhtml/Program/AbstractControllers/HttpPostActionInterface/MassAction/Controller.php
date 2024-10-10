@@ -8,8 +8,6 @@ use Magento\Ui\Component\MassAction\Filter;
 use Psr\Log\LoggerInterface;
 use ZP\LoyaltyProgram\Api\LoyaltyProgramRepositoryInterface;
 use ZP\LoyaltyProgram\Controller\Adminhtml\Program\AbstractControllers\HttpPostActionInterface\Controller as BaseController;
-use ZP\LoyaltyProgram\Model\Controller\Adminhtml\Program\CustomerProgramManagement;
-use ZP\LoyaltyProgram\Model\Controller\Adminhtml\Program\Helper;
 use ZP\LoyaltyProgram\Model\LoyaltyProgram;
 use ZP\LoyaltyProgram\Model\Prepare\Data\DataPreparer;
 use ZP\LoyaltyProgram\Model\ResourceModel\LoyaltyProgram\Collection;
@@ -20,14 +18,11 @@ use ZP\LoyaltyProgram\Api\Model\Controller\Adminhtml\Program\MassAction\RequestH
 abstract class Controller extends BaseController
 {
     protected bool $basicProgramMsgStatus = false;
-    protected array $programsForAction = [];
 
     public function __construct(
         Context $context,
         LoggerInterface $logger,
         LoyaltyProgramRepositoryInterface $programRepository,
-        CustomerProgramManagement $customerProgramManagement,
-        Helper $helper,
         ValidatorInterface $dataValidator,
         RequestHelperInterface $requestHelper,
         protected Filter $filter,
@@ -38,8 +33,6 @@ abstract class Controller extends BaseController
             $context,
             $logger,
             $programRepository,
-            $customerProgramManagement,
-            $helper,
             $dataValidator,
             $requestHelper
         );
