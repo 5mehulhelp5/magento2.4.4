@@ -51,7 +51,7 @@ class ValidatorPlugin
      */
     private function processRules(RuleCollection $collection): void
     {
-        if($this->isProgramEnabled()) {
+        if($this->programScopeConfig->isEnabled((int)$this->storeManager->getWebsite()->getId())) {
             /** @var Rule $rule */
             foreach ($collection->getItems() as $rule) {
                 $this->processRule($rule);
@@ -67,15 +67,6 @@ class ValidatorPlugin
                 }
             }
         }
-    }
-
-    /**
-     * @return bool
-     * @throws LocalizedException
-     */
-    private function isProgramEnabled(): bool
-    {
-        return $this->programScopeConfig->isEnabled((int)$this->storeManager->getWebsite()->getId());
     }
 
     /**

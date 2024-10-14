@@ -27,22 +27,14 @@ abstract class AbstractAssignLoyaltyProgram
 
     /**
      * @param Observer $observer
+     * @throws LocalizedException
      * @throws \Exception
      */
     public function execute(Observer $observer)
     {
-        if ($this->isProgramEnabled()) {
+        if ($this->programScopeConfig->isEnabled((int)$this->storeManager->getWebsite()->getId())) {
             $this->processCustomer($this->getCustomer($observer));
         }
-    }
-
-    /**
-     * @return bool
-     * @throws LocalizedException
-     */
-    private function isProgramEnabled(): bool
-    {
-        return $this->programScopeConfig->isEnabled((int)$this->storeManager->getWebsite()->getId());
     }
 
     /**

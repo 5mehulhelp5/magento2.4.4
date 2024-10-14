@@ -25,7 +25,7 @@ class AssignLoyaltyProgramAfterLoad extends AbstractAssignLoyaltyProgram impleme
         CustomerExtensionInterfaceFactory $customerExtensionFactory,
         LoyaltyProgramRepositoryInterface $loyaltyProgramRepository,
         Validator $dataValidator,
-        private Register $register
+        private Register $customerProgramAssignmentRegister
     ) {
         parent::__construct(
             $loyaltyProgramManagement,
@@ -39,9 +39,9 @@ class AssignLoyaltyProgramAfterLoad extends AbstractAssignLoyaltyProgram impleme
 
     public function execute(Observer $observer)
     {
-        if (!$this->register->getFlag()) {
+        if (!$this->customerProgramAssignmentRegister->getFlag()) {
             parent::execute($observer);
-            $this->register->setFlag(true);
+            $this->customerProgramAssignmentRegister->setFlag(true);
         }
     }
 
