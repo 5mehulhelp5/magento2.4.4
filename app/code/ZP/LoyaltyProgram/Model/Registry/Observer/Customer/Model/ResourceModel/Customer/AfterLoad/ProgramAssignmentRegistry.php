@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace ZP\LoyaltyProgram\Model\Registry\Observer\Customer\Model\ResourceModel\Customer\AfterLoad;
 
-class Register
+class ProgramAssignmentRegistry
 {
     private bool $flag = false;
 

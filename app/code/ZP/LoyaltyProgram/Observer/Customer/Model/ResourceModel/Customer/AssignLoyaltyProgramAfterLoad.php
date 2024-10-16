@@ -13,7 +13,7 @@ use ZP\LoyaltyProgram\Api\LoyaltyProgramManagementInterface;
 use ZP\LoyaltyProgram\Api\LoyaltyProgramRepositoryInterface;
 use ZP\LoyaltyProgram\Model\Configs\Program\Scope\Config as ProgramScopeConfig;
 use ZP\LoyaltyProgram\Observer\Customer\Model\ResourceModel\AbstractAssignLoyaltyProgram;
-use ZP\LoyaltyProgram\Model\Registry\Observer\Customer\Model\ResourceModel\Customer\AfterLoad\Register;
+use ZP\LoyaltyProgram\Model\Registry\Observer\Customer\Model\ResourceModel\Customer\AfterLoad\ProgramAssignmentRegistry;
 use ZP\LoyaltyProgram\Model\Validators\Data\Validator;
 
 class AssignLoyaltyProgramAfterLoad extends AbstractAssignLoyaltyProgram implements ObserverInterface
@@ -25,7 +25,7 @@ class AssignLoyaltyProgramAfterLoad extends AbstractAssignLoyaltyProgram impleme
         CustomerExtensionInterfaceFactory $customerExtensionFactory,
         LoyaltyProgramRepositoryInterface $loyaltyProgramRepository,
         Validator $dataValidator,
-        private Register $customerProgramAssignmentRegister
+        private ProgramAssignmentRegistry $programAssignmentRegistry
     ) {
         parent::__construct(
             $loyaltyProgramManagement,
@@ -39,9 +39,9 @@ class AssignLoyaltyProgramAfterLoad extends AbstractAssignLoyaltyProgram impleme
 
     public function execute(Observer $observer)
     {
-        if (!$this->customerProgramAssignmentRegister->getFlag()) {
+        if (!$this->programAssignmentRegistry->getFlag()) {
             parent::execute($observer);
-            $this->customerProgramAssignmentRegister->setFlag(true);
+            $this->programAssignmentRegistry->setFlag(true);
         }
     }
 

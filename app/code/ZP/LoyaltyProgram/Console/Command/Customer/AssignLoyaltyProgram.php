@@ -20,6 +20,7 @@ use Magento\Framework\Console\Cli;
 
 class AssignLoyaltyProgram extends Command
 {
+    private const CUSTOMER_ENTITY_ID = 'entity_id';
     private const CUSTOMER_IDS = 'customer_ids';
     private bool $isAllCustomers;
 
@@ -182,7 +183,7 @@ class AssignLoyaltyProgram extends Command
             $data[] = $this->customerRepository->getById($customerIds[array_key_first($customerIds)]);
         } else {
             if (!$this->isAllCustomers()) {
-                $this->searchCriteriaBuilder->addFilter('entity_id', $customerIds, 'in');
+                $this->searchCriteriaBuilder->addFilter(self::CUSTOMER_ENTITY_ID, $customerIds, 'in');
             }
 
             $data = $this->customerRepository->getList($this->searchCriteriaBuilder->create())->getItems();
