@@ -7,5 +7,14 @@
                 <apply_subtotal_changes_after_invoice>0</apply_subtotal_changes_after_invoice>
             </general>
         </loyalty_program>
+        <program_email_settings>
+            <general>
+                <is_enabled>1</is_enabled>
+            </general>
+            <customer>
+                <is_email_enable_to_send_to_customer>1</is_email_enable_to_send_to_customer>
+                <program_assignment_template>customer_program_assignment_template</program_assignment_template>
+            </customer>
+        </program_email_settings>
     </default>
 </config>

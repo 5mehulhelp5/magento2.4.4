@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Email:etc/email_templates.xsd">
+    <template
+        id="program_email_settings_customer_program_assignment_template"
+        label="Customer Program Assignment"
+        file="customer/program_assignment_template.html"
+        type="html"
+        module="ZP_LoyaltyProgram"
+        area="frontend"
+    />
+</config>

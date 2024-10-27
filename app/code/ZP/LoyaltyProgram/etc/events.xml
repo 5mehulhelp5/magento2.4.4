@@ -5,6 +5,10 @@
             name="assign_loyalty_program_to_customer_after_save"
             instance="ZP\LoyaltyProgram\Observer\Customer\Model\ResourceModel\CustomerRepository\AssignLoyaltyProgramAfterSave"
         />
+        <observer
+            name="change_customer_email_after_save"
+            instance="ZP\LoyaltyProgram\Observer\Customer\Model\ResourceModel\CustomerRepository\ChangeCustomerEmailAfterSave"
+        />
     </event>
     <event name="customer_load_after">
         <observer
