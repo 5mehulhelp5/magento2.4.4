@@ -21,7 +21,7 @@ class Manager
     public function __construct(
         private Config $emailConfig,
         private TransportBuilder $transportBuilder,
-        private StoreManagerInterface $storeManager,
+        private StoreManagerInterface $storeManager
     ) {}
 
     /**
@@ -34,20 +34,9 @@ class Manager
      */
     public function sendProgramAssignmentEmailMsg(CustomerInterface $customer, LoyaltyProgram $loyaltyProgram): void
     {
-        if ($this->isEnabledToSendEmailToCustomer((int)$customer->getWebsiteId())) {
+        if ($this->emailConfig->isEnabled((int)$customer->getWebsiteId())) {
             $this->sendEmailMessage($customer, $loyaltyProgram);
         }
-    }
-
-    /**
-     * @param int $websiteId
-     * @return bool
-     * @throws \Exception
-     */
-    private function isEnabledToSendEmailToCustomer(int $websiteId): bool
-    {
-        return $this->emailConfig->isEnabled(Config::GENERAL_GROUP_CONFIG_TYPE, $websiteId) &&
-            $this->emailConfig->isEnabled(Config::CUSTOMER_GROUP_CONFIG_TYPE, $websiteId);
     }
 
     /**

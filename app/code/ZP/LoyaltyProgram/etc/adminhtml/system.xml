@@ -31,13 +31,9 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
-            <group id="customer" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1">
-                <label>Customer Email Template Settings</label>
-                <field id="is_email_enable_to_send_to_customer" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" canRestore="1">
-                    <label>Is Email Enable To Send To Customer</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="program_assignment_template" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" canRestore="1">
+            <group id="template_settings" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1">
+                <label>Template Settings</label>
+                <field id="customer_program_assignment_template" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" canRestore="1">
                     <label>Program Assignment Email Template</label>
                     <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
                 </field>

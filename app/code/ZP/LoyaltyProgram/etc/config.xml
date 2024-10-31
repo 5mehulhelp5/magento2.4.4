@@ -11,10 +11,9 @@
             <general>
                 <is_enabled>1</is_enabled>
             </general>
-            <customer>
-                <is_email_enable_to_send_to_customer>1</is_email_enable_to_send_to_customer>
-                <program_assignment_template>customer_program_assignment_template</program_assignment_template>
-            </customer>
+            <template_settings>
+                <customer_program_assignment_template>customer_program_assignment_template</customer_program_assignment_template>
+            </template_settings>
         </program_email_settings>
     </default>
 </config>
