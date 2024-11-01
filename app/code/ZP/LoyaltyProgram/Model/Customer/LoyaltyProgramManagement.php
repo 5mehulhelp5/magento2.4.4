@@ -21,6 +21,7 @@ use Magento\Sales\Model\Order as OrderConfig;
 use ZP\LoyaltyProgram\Model\Prepare\Data\DataPreparer;
 use ZP\LoyaltyProgram\Api\Model\Validators\Controller\Adminhtml\Program\ValidatorInterface;
 use ZP\LoyaltyProgram\Model\MessageManager\Customer\LoyaltyProgramManagement\MessageManager;
+use ZP\LoyaltyProgram\Model\Customer\Email\Manager;
 
 class LoyaltyProgramManagement implements LoyaltyProgramManagementInterface
 {
@@ -40,7 +41,8 @@ class LoyaltyProgramManagement implements LoyaltyProgramManagementInterface
         private LoyaltyProgramRepositoryInterface $loyaltyProgramRepository,
         private DataPreparer $prepareData,
         private LoggerInterface $logger,
-        private ValidatorInterface $dataValidator
+        private ValidatorInterface $dataValidator,
+        private Manager $emailManager
     ) {
         $this->connection = $this->resourceConnection->getConnection();
     }
@@ -65,7 +67,9 @@ class LoyaltyProgramManagement implements LoyaltyProgramManagementInterface
                 return $this->returnCustomerProgram();
             }
 
-            $this->executeProgramAssignment($customer, $customerProgramId);
+            if ($this->executeProgramAssignment($customer, $customerProgramId)) {
+                $this->emailManager->sendProgramAssignmentEmailMsg($customer, $this->returnCustomerProgram());
+            }
 
             $this->programToAssign = null;
 
@@ -362,17 +366,18 @@ class LoyaltyProgramManagement implements LoyaltyProgramManagementInterface
     /**
      * @param CustomerInterface $customer
      * @param int|null $customerProgramId
+     * @return bool
      * @throws \Exception
      */
     private function executeProgramAssignment(
         CustomerInterface $customer,
         ?int $customerProgramId
-    ): void {
+    ): bool {
         $programIdToAssign = $this->programToAssign->getProgramId();
         if ($customerProgramId && $customerProgramId === $programIdToAssign) {
             $this->result = MessageManager::NO_NEED;
 
-            return;
+            return false;
         }
 
         $condition = null;
@@ -390,6 +395,8 @@ class LoyaltyProgramManagement implements LoyaltyProgramManagementInterface
         }
 
         $this->assignProgram($data, $condition);
+
+        return true;
     }
 
     public function returnCustomerProgram(): ?LoyaltyProgramInterface

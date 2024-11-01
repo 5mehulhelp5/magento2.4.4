@@ -12,7 +12,7 @@ class Config
     private const XML_PATH_APPLY_SUBTOTAL_CHANGES_AFTER_INVOICE = 'loyalty_program/general/apply_subtotal_changes_after_invoice';
 
     public function __construct(
-        private ScopeConfigInterface $scopeConfig,
+        private ScopeConfigInterface $scopeConfig
     ) {}
 
     /**
